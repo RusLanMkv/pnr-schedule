@@ -4,7 +4,7 @@
       "name": "Богомолов Константин",
       "title": "Рук. ПО",
       "group": "ПО",
-      "isActive": true
+      "isActive": false
     },
     {
       "name": "Лобанов Александр",
@@ -202,6 +202,12 @@
       "name": "Коченина Василиса",
       "title": "БА",
       "group": "БА",
+      "isActive": true
+    },
+    {
+      "name": "Мешков Руслан",
+      "title": "Инж.эл",
+      "group": "ПНР",
       "isActive": true
     }
   ],
