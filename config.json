@@ -203,6 +203,12 @@
       "title": "БА",
       "group": "БА",
       "isActive": true
+    },
+    {
+      "name": "иванов ивавн",
+      "title": "Рук.ПО",
+      "group": "ПО",
+      "isActive": false
     }
   ],
   "statuses": [
