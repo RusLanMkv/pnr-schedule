@@ -11,6 +11,12 @@
       "title": "Инж.эл",
       "group": "ПНР",
       "isActive": false
+    },
+    {
+      "name": "иван иванович",
+      "title": "Рук.ПО",
+      "group": "ПО",
+      "isActive": false
     }
   ],
   "statuses": [],
