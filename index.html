@@ -1091,7 +1091,7 @@
     const GITHUB_REPO = 'pnr-schedule';
     const GITHUB_BRANCH = 'main';
 
-    let githubToken = localStorage.getItem('github_token') || '';
+    let githubToken = '';
     
     // Данные
     let currentYear = 2026;
@@ -2419,9 +2419,10 @@
     }
 
     // ========== ИНИЦИАЛИЗАЦИЯ ==========
-    function init() {
+    async function init() {
         console.log('📄 Инициализация приложения');
         
+        // Загружаем токен из localStorage ПЕРЕД началом работы
         const savedToken = localStorage.getItem('github_token');
         if (savedToken) {
             githubToken = savedToken;
@@ -2442,6 +2443,27 @@
             currentEndMonth = Math.min(11, currentStartMonth + 2);
             startSel.value = currentStartMonth; 
             endSel.value = currentEndMonth;
+        }
+        
+        // Загружаем данные
+        showLoading();
+        try {
+            await loadConfig();
+            await loadEvents();
+            
+            // Рендерим интерфейс после загрузки данных
+            renderSchedule();
+            updateUserDisplay();
+            renderLoginEmployeeList('');
+            
+            // Обновляем статус токена
+            updateTokenStatus();
+            
+            console.log('✅ Загрузка данных завершена');
+        } catch (error) {
+            console.error('❌ Ошибка загрузки данных:', error);
+        } finally {
+            hideLoading();
         }
         
         const settingsBtn = document.getElementById('settingsBtn');
@@ -3020,18 +3042,6 @@
                 dateTimeEl.innerHTML = `${d}.${mo}.${now.getFullYear()} _ ${h}:${m}`;
             }
         }, 1000);
-        
-        showLoading();
-        Promise.all([loadConfig(), loadEvents()]).then(() => {
-            renderSchedule();
-            updateUserDisplay();
-            renderLoginEmployeeList('');
-            hideLoading();
-            console.log('✅ Загрузка данных завершена');
-        }).catch(error => {
-            console.error('❌ Ошибка загрузки данных:', error);
-            hideLoading();
-        });
     }
 
     if (document.readyState === 'loading') {
