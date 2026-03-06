@@ -10,6 +10,8 @@
   "statuses": [],
   "holidays": [],
   "shortDays": [],
-  "employeePasswords": {},
+  "employeePasswords": {
+    "Мешков Руслан": "00"
+  },
   "currentYear": 2026
 }
