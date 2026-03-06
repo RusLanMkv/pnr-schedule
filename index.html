@@ -1175,60 +1175,96 @@
         }
     }
 
-    async function saveFileToGitHub(path, content, message) {
-        if (!githubToken) {
-            showNotification('Введите GitHub токен в настройках', 'error');
-            return false;
-        }
+async function saveFileToGitHub(path, content, message, providedSHA = null) {
+    if (!githubToken) {
+        showNotification('Введите GitHub токен в настройках', 'error');
+        return false;
+    }
 
-        showLoading();
+    showLoading();
+    
+    try {
+        const contentBase64 = btoa(unescape(encodeURIComponent(content)));
         
-        try {
-            const contentBase64 = btoa(unescape(encodeURIComponent(content)));
-            
-            let sha = null;
+        // Используем предоставленный SHA или получаем новый
+        let sha = providedSHA;
+        if (!sha) {
             try {
                 sha = await getFileSHA(path);
-            } catch (e) {}
-
-            const url = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${path}`;
-            
-            const body = {
-                message: message,
-                content: contentBase64,
-                branch: GITHUB_BRANCH
-            };
-
-            if (sha) {
-                body.sha = sha;
+                console.log(`Получен SHA для ${path}:`, sha);
+            } catch (e) {
+                console.log(`Файл ${path} не существует, будет создан`);
             }
-
-            const response = await fetch(url, {
-                method: 'PUT',
-                headers: {
-                    'Authorization': `token ${githubToken}`,
-                    'Accept': 'application/vnd.github.v3+json',
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(body)
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || 'Ошибка сохранения');
-            }
-
-            showNotification('✅ Данные сохранены на GitHub');
-            return true;
-
-        } catch (error) {
-            console.error('Ошибка сохранения на GitHub:', error);
-            showNotification(`Ошибка: ${error.message}`, 'error');
-            return false;
-        } finally {
-            hideLoading();
         }
+
+        const url = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${path}`;
+        
+        const body = {
+            message: message,
+            content: contentBase64,
+            branch: GITHUB_BRANCH
+        };
+
+        if (sha) {
+            body.sha = sha;
+        }
+
+        console.log('Отправка на GitHub:', { path, sha: sha || 'новый файл' });
+
+        const response = await fetch(url, {
+            method: 'PUT',
+            headers: {
+                'Authorization': `token ${githubToken}`,
+                'Accept': 'application/vnd.github.v3+json',
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(body)
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            
+            // Если ошибка связана с SHA, пробуем получить новый SHA и сохранить ещё раз
+            if (errorData.message && errorData.message.includes('does not match')) {
+                console.log('SHA устарел, пробуем получить новый...');
+                const newSHA = await getFileSHA(path);
+                
+                if (newSHA) {
+                    body.sha = newSHA;
+                    const retryResponse = await fetch(url, {
+                        method: 'PUT',
+                        headers: {
+                            'Authorization': `token ${githubToken}`,
+                            'Accept': 'application/vnd.github.v3+json',
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(body)
+                    });
+                    
+                    if (!retryResponse.ok) {
+                        const retryError = await retryResponse.json();
+                        throw new Error(retryError.message || 'Ошибка сохранения');
+                    }
+                    
+                    showNotification('✅ Данные сохранены на GitHub');
+                    return true;
+                }
+            }
+            
+            throw new Error(errorData.message || 'Ошибка сохранения');
+        }
+
+        showNotification('✅ Данные сохранены на GitHub');
+        return true;
+
+    } catch (error) {
+        console.error('Ошибка сохранения на GitHub:', error);
+        showNotification(`Ошибка: ${error.message}`, 'error');
+        return false;
+    } finally {
+        hideLoading();
     }
+}
 
     // ========== ЗАГРУЗКА ДАННЫХ ==========
     async function loadConfig() {
@@ -1272,41 +1308,61 @@
         }
     }
 
-    async function saveConfig() {
-        const config = {
-            employeeList,
-            statuses,
-            holidays,
-            shortDays,
-            employeePasswords,
-            currentYear
-        };
-        
-        const configJson = JSON.stringify(config, null, 2);
-        
-        return await saveFileToGitHub(
-            'config.json',
-            configJson,
-            `Обновление настроек от ${new Date().toLocaleString()}`
-        );
+async function saveConfig() {
+    const config = {
+        employeeList,
+        statuses,
+        holidays,
+        shortDays,
+        employeePasswords,
+        currentYear
+    };
+    
+    const configJson = JSON.stringify(config, null, 2);
+    
+    // Получаем актуальный SHA перед сохранением
+    let currentSHA = null;
+    try {
+        currentSHA = await getFileSHA('config.json');
+        console.log('Текущий SHA config.json:', currentSHA);
+    } catch (e) {
+        console.log('Файл config.json будет создан');
     }
+    
+    return await saveFileToGitHub(
+        'config.json',
+        configJson,
+        `Обновление настроек от ${new Date().toLocaleString()}`,
+        currentSHA  // Передаём актуальный SHA
+    );
+}
 
-    async function saveEvents() {
-        const eventsData = {
-            events,
-            cellData,
-            nextEventId,
-            changeHistory
-        };
-        
-        const eventsJson = JSON.stringify(eventsData, null, 2);
-        
-        return await saveFileToGitHub(
-            'events.json',
-            eventsJson,
-            `Обновление событий от ${new Date().toLocaleString()}`
-        );
+async function saveEvents() {
+    const eventsData = {
+        events,
+        cellData,
+        nextEventId,
+        changeHistory
+    };
+    
+    const eventsJson = JSON.stringify(eventsData, null, 2);
+    
+    // Получаем актуальный SHA перед сохранением
+    let currentSHA = null;
+    try {
+        currentSHA = await getFileSHA('events.json');
+        console.log('Текущий SHA events.json:', currentSHA);
+    } catch (e) {
+        console.log('Файл events.json будет создан');
     }
+    
+    return await saveFileToGitHub(
+        'events.json',
+        eventsJson,
+        `Обновление событий от ${new Date().toLocaleString()}`,
+        currentSHA
+    );
+}
 
     // ========== ФУНКЦИИ ДЛЯ РАБОТЫ С СОБЫТИЯМИ ==========
     function addHistoryEntry(action, eventId, user, details) {
