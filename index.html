@@ -817,6 +817,31 @@
         .reset-token-btn:hover {
             background: #cc0000;
         }
+        
+        /* Стили для модального окна первого запуска */
+        .first-start-modal .modal-content {
+            max-width: 400px;
+            text-align: center;
+        }
+        .first-start-modal h2 {
+            color: #1e3a6b;
+            margin-bottom: 20px;
+        }
+        .first-start-modal p {
+            color: #4a5568;
+            margin-bottom: 20px;
+            font-size: 14px;
+            line-height: 1.5;
+        }
+        .first-start-modal input {
+            margin-bottom: 15px;
+        }
+        .first-start-modal .info-message {
+            background: #e3f2fd;
+            color: #0d47a1;
+            border-left-color: #2196f3;
+            text-align: left;
+        }
     </style>
 </head>
 <body>
@@ -872,6 +897,25 @@
 </script>
 
 <div class="loading-indicator" id="loadingIndicator">Загрузка данных...</div>
+
+<!-- Модальное окно первого запуска (ввод GitHub Token) -->
+<div id="firstStartModal" class="modal first-start-modal">
+    <div class="modal-content">
+        <h2>🔑 Первый запуск</h2>
+        <p>Для работы приложения необходимо ввести GitHub Token. Токен будет сохранён в браузере и больше не потребуется.</p>
+        <div class="info-message" style="margin-bottom: 15px;">
+            <strong>Как получить токен:</strong><br>
+            1. Перейдите в <a href="https://github.com/settings/tokens" target="_blank">GitHub Settings → Tokens</a><br>
+            2. Создайте новый токен с правами <strong>repo</strong><br>
+            3. Скопируйте токен и вставьте ниже
+        </div>
+        <input type="password" id="firstStartToken" placeholder="Введите GitHub Token" style="margin-bottom: 10px;">
+        <div id="firstStartError" class="error-message" style="display:none;"></div>
+        <div style="display: flex; gap: 10px; justify-content: flex-end;">
+            <button id="firstStartSaveBtn" class="primary">Сохранить</button>
+        </div>
+    </div>
+</div>
 
 <div class="app-container">
     <div class="compact-header">
@@ -998,7 +1042,7 @@
             <span id="settingsUserInfo" class="settings-user" style="display:none;"></span>
         </h2>
         <div class="settings-grid">
-            <div class="github-token-status" id="tokenStatusContainer">
+            <div class="github-token-status" id="tokenStatusContainer" style="display: none;">
                 <span class="token-status-text" id="tokenStatus">⚙️ GitHub Token не настроен</span>
                 <div class="token-input-group" id="tokenInputGroup">
                     <input type="password" id="tokenInput" placeholder="Введите GitHub Token">
@@ -1092,6 +1136,7 @@
     const GITHUB_BRANCH = 'main';
 
     let githubToken = '';
+    let isFirstStart = true;
     
     // Данные
     let currentYear = 2026;
@@ -1233,7 +1278,7 @@
 
     async function saveFileToGitHub(path, content, message) {
         if (!githubToken) {
-            showNotification('❌ Сначала настройте GitHub Token в окне настроек', 'error');
+            showNotification('❌ Сначала настройте GitHub Token', 'error');
             return false;
         }
 
@@ -1343,6 +1388,7 @@
     // ========== ЗАГРУЗКА ДАННЫХ ==========
     async function loadConfig() {
         try {
+            // Используем прямой fetch без авторизации для публичных файлов
             const response = await fetch('config.json?_=' + Date.now());
             if (!response.ok) throw new Error('Ошибка загрузки config.json');
             const config = await response.json();
@@ -1364,6 +1410,7 @@
 
     async function loadEvents() {
         try {
+            // Используем прямой fetch без авторизации для публичных файлов
             const response = await fetch('events.json?_=' + Date.now());
             if (!response.ok) throw new Error('Ошибка загрузки events.json');
             const eventsData = await response.json();
@@ -1819,8 +1866,6 @@
 
     function openSettingsModal() {
         console.log('🔧 Открываем настройки');
-        console.log('employeeList длина:', employeeList?.length);
-        console.log('employeeList данные:', employeeList);
         
         renderSettingsEmployees();
         renderSettingsStatuses();
@@ -1835,7 +1880,14 @@
             parolField.value = employeePasswords[currentLoggedInEmployee] || '';
         }
         
-        updateTokenStatus();
+        // Показываем блок с токеном только для администраторов
+        const tokenContainer = document.getElementById('tokenStatusContainer');
+        if (tokenContainer) {
+            tokenContainer.style.display = currentLoggedInEmployee ? 'flex' : 'none';
+            if (currentLoggedInEmployee) {
+                updateTokenStatus();
+            }
+        }
         
         const modal = document.getElementById('settingsModal');
         if (modal) {
@@ -2418,15 +2470,71 @@
         }, 2000);
     }
 
+    // ========== ФУНКЦИЯ ДЛЯ ПЕРВОГО ЗАПУСКА ==========
+    function openFirstStartModal() {
+        const modal = document.getElementById('firstStartModal');
+        if (modal) {
+            modal.classList.add('active');
+            
+            const saveBtn = document.getElementById('firstStartSaveBtn');
+            const tokenInput = document.getElementById('firstStartToken');
+            const errorDiv = document.getElementById('firstStartError');
+            
+            saveBtn.onclick = function() {
+                const token = tokenInput.value.trim();
+                if (!token) {
+                    errorDiv.style.display = 'block';
+                    errorDiv.innerHTML = '❌ Введите GitHub Token';
+                    return;
+                }
+                
+                // Простая проверка формата токена
+                if (token.length < 10) {
+                    errorDiv.style.display = 'block';
+                    errorDiv.innerHTML = '❌ Неверный формат токена';
+                    return;
+                }
+                
+                githubToken = token;
+                localStorage.setItem('github_token', githubToken);
+                errorDiv.style.display = 'none';
+                modal.classList.remove('active');
+                
+                // После сохранения токена загружаем данные
+                loadInitialData();
+            };
+        }
+    }
+
+    // ========== ЗАГРУЗКА ДАННЫХ ПОСЛЕ ТОКЕНА ==========
+    async function loadInitialData() {
+        showLoading();
+        try {
+            await loadConfig();
+            await loadEvents();
+            
+            renderSchedule();
+            updateUserDisplay();
+            renderLoginEmployeeList('');
+            
+            console.log('✅ Загрузка данных завершена');
+        } catch (error) {
+            console.error('❌ Ошибка загрузки данных:', error);
+        } finally {
+            hideLoading();
+        }
+    }
+
     // ========== ИНИЦИАЛИЗАЦИЯ ==========
     async function init() {
         console.log('📄 Инициализация приложения');
         
-        // Загружаем токен из localStorage ПЕРЕД началом работы
+        // Загружаем токен из localStorage
         const savedToken = localStorage.getItem('github_token');
         if (savedToken) {
             githubToken = savedToken;
             console.log('✅ Токен загружен из localStorage');
+            isFirstStart = false;
         }
         
         const startSel = document.getElementById('startMonth');
@@ -2445,25 +2553,12 @@
             endSel.value = currentEndMonth;
         }
         
-        // Загружаем данные
-        showLoading();
-        try {
-            await loadConfig();
-            await loadEvents();
-            
-            // Рендерим интерфейс после загрузки данных
-            renderSchedule();
-            updateUserDisplay();
-            renderLoginEmployeeList('');
-            
-            // Обновляем статус токена
-            updateTokenStatus();
-            
-            console.log('✅ Загрузка данных завершена');
-        } catch (error) {
-            console.error('❌ Ошибка загрузки данных:', error);
-        } finally {
-            hideLoading();
+        // Если токена нет - показываем модальное окно первого запуска
+        if (isFirstStart) {
+            openFirstStartModal();
+        } else {
+            // Если токен есть - загружаем данные
+            await loadInitialData();
         }
         
         const settingsBtn = document.getElementById('settingsBtn');
