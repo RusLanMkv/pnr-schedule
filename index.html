@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
     <title>График ПНР — с сохранением на GitHub</title>
     <style>
-        /* ========== ВСЕ СТИЛИ ========== */
+        /* ========== ВСЕ СТИЛИ БЕЗ ИЗМЕНЕНИЙ ========== */
         * {
             box-sizing: border-box;
             font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
@@ -123,7 +123,7 @@
             background: #c3c6cc;
             border-radius: 30px;
             padding: 3px 9px;
-            display: none;
+            display: flex;
             flex-wrap: wrap;
             gap: 6px 12px;
             font-size: 0.7rem;
@@ -772,34 +772,46 @@
             display: block;
         }
 
-        .github-token-input {
+        .github-token-status {
             margin: 10px 0;
             padding: 10px;
             background: #f0f4fa;
             border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
         }
-        .github-token-input input {
-            width: 100%;
-            padding: 8px;
-            border: 1px solid #1e3a6b;
-            border-radius: 4px;
+        .token-status-text {
+            font-size: 0.9rem;
+            color: #1e3a6b;
+        }
+        .token-status-text.success {
+            color: #4CAF50;
+        }
+        .reset-token-btn {
+            background: #ff4444;
+            color: white;
+            border: none;
+            padding: 5px 15px;
+            border-radius: 15px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+        .reset-token-btn:hover {
+            background: #cc0000;
         }
     </style>
 </head>
 <body>
 <!-- ========== ЗАЩИТА ОТ ОШИБОК РАСШИРЕНИЙ ========== -->
 <script>
-// Этот скрипт выполнится самым первым и заблокирует ошибки расширений
 (function() {
-    // Перехватываем все ошибки
     const originalAddEventListener = window.addEventListener;
     
-    // Оборачиваем addEventListener для защиты
     window.addEventListener = function(type, listener, options) {
         if (type === 'error') {
             const wrappedListener = function(e) {
                 try {
-                    // Игнорируем ошибки от disk-button
                     if (e.filename && e.filename.includes('disk-button')) {
                         console.log('🛡️ Блокируем ошибку расширения');
                         e.preventDefault?.();
@@ -821,7 +833,6 @@
         return originalAddEventListener.call(this, type, listener, options);
     };
     
-    // Перехватываем ошибки
     window.addEventListener('error', function(e) {
         if (e.filename && e.filename.includes('disk-button')) {
             e.preventDefault();
@@ -831,7 +842,6 @@
         }
     }, true);
     
-    // Для старых браузеров
     window.onerror = function(msg, url, line, col, error) {
         if (url && url.includes('disk-button')) {
             console.log('🛡️ Заблокирована ошибка расширения (onerror)');
@@ -977,10 +987,9 @@
             <span id="settingsUserInfo" class="settings-user" style="display:none;"></span>
         </h2>
         <div class="settings-grid">
-            <div class="github-token-input">
-                <label>🔑 GitHub Token (для автоматического сохранения)</label>
-                <input type="password" id="githubToken" placeholder="Введите ваш GitHub Personal Access Token">
-                <small style="color: #666;">Токен нужен для сохранения изменений на GitHub</small>
+            <div class="github-token-status" id="tokenStatusContainer">
+                <span class="token-status-text" id="tokenStatus">⚙️ GitHub Token не настроен</span>
+                <button class="reset-token-btn" id="resetTokenBtn" style="display: none;">Сбросить токен</button>
             </div>
             <div style="border-top:2px solid #3104af; padding-top:6px;">
                 <h3>👥 Сотрудники</h3>
@@ -1049,11 +1058,9 @@
 </div>
 
 <script>
-// ========== ОСНОВНОЙ КОД ПРИЛОЖЕНИЯ ==========
 (function() {
     console.log('🚀 Основной скрипт запущен');
     
-    // Индикатор загрузки
     const loadingIndicator = document.getElementById('loadingIndicator');
     
     function showLoading() {
@@ -1065,11 +1072,10 @@
     }
 
     // ========== НАСТРОЙКИ GITHUB ==========
-    const GITHUB_OWNER = 'RusLanMkv';  // Ваш логин
-    const GITHUB_REPO = 'pnr-schedule';  // Название репозитория
-    const GITHUB_BRANCH = 'main';  // Ветка
+    const GITHUB_OWNER = 'RusLanMkv';
+    const GITHUB_REPO = 'pnr-schedule';
+    const GITHUB_BRANCH = 'main';
 
-    // Загружаем сохраненный токен
     let githubToken = localStorage.getItem('github_token') || '';
     
     // Данные
@@ -1083,7 +1089,6 @@
     let nextEventId = 1;
     let employeePasswords = {};
     
-    // История изменений
     let changeHistory = [];
     let nextHistoryId = 1;
 
@@ -1135,22 +1140,29 @@
 
     // ========== ФУНКЦИИ ДЛЯ РАБОТЫ С GITHUB ==========
     
-    function saveGitHubToken() {
-        const tokenInput = document.getElementById('githubToken');
-        if (tokenInput) {
-            const token = tokenInput.value.trim();
-            if (token) {
-                githubToken = token;
-                localStorage.setItem('github_token', token);
-                console.log('✅ Токен сохранен в localStorage');
-                showNotification('Токен сохранен в браузере', 'success');
-            } else {
-                githubToken = '';
-                localStorage.removeItem('github_token');
-                console.log('Токен удален');
-            }
+    function updateTokenStatus() {
+        const tokenStatus = document.getElementById('tokenStatus');
+        const resetBtn = document.getElementById('resetTokenBtn');
+        
+        if (githubToken) {
+            tokenStatus.innerHTML = '✅ GitHub Token настроен (сохранен в браузере)';
+            tokenStatus.className = 'token-status-text success';
+            resetBtn.style.display = 'inline-block';
+        } else {
+            tokenStatus.innerHTML = '⚙️ GitHub Token не настроен (будет предложен при первом сохранении)';
+            tokenStatus.className = 'token-status-text';
+            resetBtn.style.display = 'none';
         }
     }
+
+    document.getElementById('resetTokenBtn')?.addEventListener('click', function() {
+        if (confirm('Сбросить GitHub токен? Это потребует повторного ввода при следующем сохранении.')) {
+            githubToken = '';
+            localStorage.removeItem('github_token');
+            updateTokenStatus();
+            showNotification('Токен сброшен', 'info');
+        }
+    });
 
     async function getFileSHA(path, retries = 3) {
         if (!githubToken) {
@@ -1188,8 +1200,15 @@
 
     async function saveFileToGitHub(path, content, message) {
         if (!githubToken) {
-            showNotification('Введите GitHub токен в настройках', 'error');
-            return false;
+            const token = prompt('Введите GitHub Token для автоматического сохранения (нужно ввести один раз):');
+            if (token) {
+                githubToken = token;
+                localStorage.setItem('github_token', token);
+                updateTokenStatus();
+            } else {
+                showNotification('Сохранение на GitHub отменено', 'info');
+                return false;
+            }
         }
 
         showLoading();
@@ -1203,7 +1222,6 @@
                 let sha = null;
                 try {
                     sha = await getFileSHA(path);
-                    console.log(`SHA для ${path}:`, sha);
                 } catch (e) {
                     console.log(`Ошибка получения SHA для ${path}:`, e.message);
                 }
@@ -1219,8 +1237,6 @@
                 if (sha) {
                     body.sha = sha;
                 }
-
-                console.log(`Попытка ${retryCount + 1} сохранения ${path}:`, { sha: sha || 'новый файл' });
 
                 const response = await fetch(url, {
                     method: 'PUT',
@@ -1246,7 +1262,7 @@
                     throw new Error(errorData.message || 'Ошибка сохранения');
                 }
 
-                showNotification(`✅ ${path} сохранен на GitHub`);
+                showNotification(`✅ Данные сохранены на GitHub`);
                 return true;
 
             } catch (error) {
@@ -1313,7 +1329,6 @@
             currentYear = config.currentYear || 2026;
             
             document.getElementById('currentYearLabel').innerText = currentYear;
-            
             return true;
         } catch (error) {
             console.error('Ошибка загрузки config.json:', error);
@@ -1627,124 +1642,91 @@
     }
 
     // ========== ФУНКЦИИ ДЛЯ НАСТРОЕК ==========
-    function openSettingsModal() {
-        console.log('🔧 Открываем настройки');
-        
-        renderSettingsEmployees();
-        renderSettingsStatuses();
-        renderHolidays();
-        renderShortdays();
-        
-        const yearField = document.getElementById('yearField');
-        if (yearField) yearField.value = currentYear;
-        
-        const parolField = document.getElementById('parol');
-        if (parolField && currentLoggedInEmployee) {
-            parolField.value = employeePasswords[currentLoggedInEmployee] || '';
-        }
-        
-        const tokenInput = document.getElementById('githubToken');
-        if (tokenInput) tokenInput.value = githubToken;
-        
-        const modal = document.getElementById('settingsModal');
-        if (modal) {
-            modal.classList.add('active');
-            console.log('✅ Модальное окно настроек открыто');
-        } else {
-            console.error('❌ Модальное окно settingsModal не найдено');
-        }
-    }
-
     function renderSettingsEmployees() {
-    console.log('🔄 Рендеринг списка сотрудников');
-    const container = document.getElementById('employeesGroupContainer');
-    if (!container) {
-        console.error('❌ Контейнер employeesGroupContainer не найден');
-        return;
-    }
-    
-    if (!employeeList || employeeList.length === 0) {
-        console.log('Список сотрудников пуст');
-        container.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">Нет сотрудников</div>';
-        return;
-    }
-    
-    const groups = ['ПО','ПНР','РП','ИР','АД','БА'];
-    const titles = ['Рук.ПО','Вед.инж','Ст.инж','инж','Рук.ПНР','Вед.Инж.эл','Ст.Инж.эл','Инж.эл','Рук.РП','РП','Рук.ИР','Спец.ИР','Админ','Рук.АД','Аналитик','БА'];
-    
-    let html = '';
-    employeeList.forEach((e, i) => {
-        html += `<div style="display: flex; align-items: center; gap: 10px; padding: 8px 5px; border-bottom: 1px solid #e0e0e0; flex-wrap: wrap;">
-            <span style="width: 40%; font-size: 14px; font-weight: 500;">${e.name || 'Без имени'}</span>
-            <select data-idx="${i}" class="emp-group" style="padding: 6px; font-size: 12px; width: 15%; min-height: 36px;">
-                ${groups.map(g => `<option ${e.group === g ? 'selected' : ''}>${g}</option>`).join('')}
-            </select>
-            <select data-idx="${i}" class="emp-title" style="padding: 6px; font-size: 12px; width: 15%; min-height: 36px;">
-                ${titles.map(t => `<option ${e.title === t ? 'selected' : ''}>${t}</option>`).join('')}
-            </select>
-            <input type="checkbox" data-idx="${i}" class="emp-active" ${e.isActive ? 'checked' : ''} style="width: 24px; height: 24px; margin: 0;">
-            <button data-idx="${i}" class="remove-emp" style="padding: 6px 10px; font-size: 12px; width: auto; min-height: 36px;">🗑️</button>
-        </div>`;
-    });
-    
-    container.innerHTML = html;
-    console.log(`✅ Отображено ${employeeList.length} сотрудников`);
-    
-    // Добавляем обработчики
-    document.querySelectorAll('.emp-group').forEach(s => {
-        s.addEventListener('change', function() { 
-            const idx = this.dataset.idx;
-            employeeList[idx].group = this.value; 
-            renderSchedule(); 
-            saveConfig();
-            console.log(`Группа сотрудника изменена на ${this.value}`);
+        console.log('🔄 Рендеринг списка сотрудников');
+        const container = document.getElementById('employeesGroupContainer');
+        if (!container) {
+            console.error('❌ Контейнер employeesGroupContainer не найден');
+            return;
+        }
+        
+        if (!employeeList || employeeList.length === 0) {
+            container.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">Нет сотрудников</div>';
+            return;
+        }
+        
+        const groups = ['ПО','ПНР','РП','ИР','АД','БА'];
+        const titles = ['Рук.ПО','Вед.инж','Ст.инж','инж','Рук.ПНР','Вед.Инж.эл','Ст.Инж.эл','Инж.эл','Рук.РП','РП','Рук.ИР','Спец.ИР','Админ','Рук.АД','Аналитик','БА'];
+        
+        let html = '';
+        employeeList.forEach((e, i) => {
+            html += `<div style="display: flex; align-items: center; gap: 10px; padding: 8px 5px; border-bottom: 1px solid #e0e0e0; flex-wrap: wrap;">
+                <span style="width: 40%; font-size: 14px; font-weight: 500;">${e.name || 'Без имени'}</span>
+                <select data-idx="${i}" class="emp-group" style="padding: 6px; font-size: 12px; width: 15%; min-height: 36px;">
+                    ${groups.map(g => `<option ${e.group === g ? 'selected' : ''}>${g}</option>`).join('')}
+                </select>
+                <select data-idx="${i}" class="emp-title" style="padding: 6px; font-size: 12px; width: 15%; min-height: 36px;">
+                    ${titles.map(t => `<option ${e.title === t ? 'selected' : ''}>${t}</option>`).join('')}
+                </select>
+                <input type="checkbox" data-idx="${i}" class="emp-active" ${e.isActive ? 'checked' : ''} style="width: 24px; height: 24px; margin: 0;">
+                <button data-idx="${i}" class="remove-emp" style="padding: 6px 10px; font-size: 12px; width: auto; min-height: 36px;">🗑️</button>
+            </div>`;
         });
-    });
-    
-    document.querySelectorAll('.emp-title').forEach(s => {
-        s.addEventListener('change', function() { 
-            const idx = this.dataset.idx;
-            employeeList[idx].title = this.value; 
-            renderSchedule(); 
-            saveConfig();
-            console.log(`Должность сотрудника изменена на ${this.value}`);
-        });
-    });
-    
-    document.querySelectorAll('.remove-emp').forEach(b => {
-        b.addEventListener('click', function(e) { 
-            const idx = e.target.dataset.idx;
-            if (confirm('Удалить сотрудника?')) {
-                employeeList.splice(idx, 1); 
+        
+        container.innerHTML = html;
+        console.log(`✅ Отображено ${employeeList.length} сотрудников`);
+        
+        document.querySelectorAll('.emp-group').forEach(s => {
+            s.addEventListener('change', function() { 
+                const idx = this.dataset.idx;
+                employeeList[idx].group = this.value; 
                 renderSchedule(); 
-                renderSettingsEmployees(); 
+                saveConfig();
+            });
+        });
+        
+        document.querySelectorAll('.emp-title').forEach(s => {
+            s.addEventListener('change', function() { 
+                const idx = this.dataset.idx;
+                employeeList[idx].title = this.value; 
+                renderSchedule(); 
+                saveConfig();
+            });
+        });
+        
+        document.querySelectorAll('.remove-emp').forEach(b => {
+            b.addEventListener('click', function(e) { 
+                const idx = e.target.dataset.idx;
+                if (confirm('Удалить сотрудника?')) {
+                    employeeList.splice(idx, 1); 
+                    renderSchedule(); 
+                    renderSettingsEmployees(); 
+                    renderLoginEmployeeList('');
+                    saveConfig();
+                }
+            });
+        });
+        
+        document.querySelectorAll('.emp-active').forEach(cb => {
+            cb.addEventListener('change', function() { 
+                const idx = this.dataset.idx;
+                employeeList[idx].isActive = this.checked; 
+                renderSchedule(); 
                 renderLoginEmployeeList('');
                 saveConfig();
-                console.log('Сотрудник удален');
-            }
+            });
         });
-    });
-    
-    document.querySelectorAll('.emp-active').forEach(cb => {
-        cb.addEventListener('change', function() { 
-            const idx = this.dataset.idx;
-            employeeList[idx].isActive = this.checked; 
-            renderSchedule(); 
-            renderLoginEmployeeList('');
-            saveConfig();
-            console.log(`Статус сотрудника изменен на ${this.checked ? 'активен' : 'неактивен'}`);
-        });
-    });
-}
+    }
     
     function renderSettingsStatuses() {
         const container = document.getElementById('statusesList');
         if (!container) return;
         
-        container.innerHTML = statuses.map((s,i) => `<div>
-            <span style="display:inline-block; width:16px; height:16px; background:${s.color};"></span> ${s.name}
-            <input type="color" value="${s.color}" data-idx="${i}" class="status-color-picker" style="width:40px;">
-            <button data-idx="${i}" class="remove-status">✖</button>
+        container.innerHTML = statuses.map((s,i) => `<div style="display: flex; align-items: center; gap: 10px; padding: 5px; border-bottom: 1px solid #e0e0e0;">
+            <span style="display:inline-block; width:16px; height:16px; background:${s.color};"></span>
+            <span style="flex:1;">${s.name}</span>
+            <input type="color" value="${s.color}" data-idx="${i}" class="status-color-picker" style="width:40px; height:30px;">
+            <button data-idx="${i}" class="remove-status" style="padding: 5px 10px;">✖</button>
         </div>`).join('');
             
         document.querySelectorAll('.status-color-picker').forEach(p => p.addEventListener('change', function(e){ 
@@ -1782,7 +1764,10 @@
         
         container.innerHTML = holidays.map((h,i) => { 
             let {month,day} = getMonthDayFromOffset(h.dateOffset); 
-            return `<div class="holiday-item"><span>${monthNames[month]} ${day}</span> <button data-idx="${i}" class="remove-holiday">✖</button></div>`; 
+            return `<div class="holiday-item" style="display: flex; align-items: center; gap: 10px; padding: 5px; border-bottom: 1px solid #e0e0e0;">
+                <span style="flex:1;">${monthNames[month]} ${day}</span>
+                <button data-idx="${i}" class="remove-holiday" style="padding: 5px 10px;">✖</button>
+            </div>`; 
         }).join('');
         
         document.querySelectorAll('.remove-holiday').forEach(b => b.addEventListener('click', function(e){ 
@@ -1799,7 +1784,10 @@
         
         container.innerHTML = shortDays.map((off,i) => { 
             let {month,day} = getMonthDayFromOffset(off); 
-            return `<div class="shortday-item"><span>${monthNames[month]} ${day}</span> <button data-idx="${i}" class="remove-shortday">✖</button></div>`; 
+            return `<div class="shortday-item" style="display: flex; align-items: center; gap: 10px; padding: 5px; border-bottom: 1px solid #e0e0e0;">
+                <span style="flex:1;">${monthNames[month]} ${day}</span>
+                <button data-idx="${i}" class="remove-shortday" style="padding: 5px 10px;">✖</button>
+            </div>`; 
         }).join('');
         
         document.querySelectorAll('.remove-shortday').forEach(b => b.addEventListener('click', function(e){ 
@@ -1808,6 +1796,32 @@
             renderShortdays(); 
             saveConfig();
         }));
+    }
+
+    function openSettingsModal() {
+        console.log('🔧 Открываем настройки');
+        console.log('employeeList длина:', employeeList?.length);
+        
+        renderSettingsEmployees();
+        renderSettingsStatuses();
+        renderHolidays();
+        renderShortdays();
+        
+        const yearField = document.getElementById('yearField');
+        if (yearField) yearField.value = currentYear;
+        
+        const parolField = document.getElementById('parol');
+        if (parolField && currentLoggedInEmployee) {
+            parolField.value = employeePasswords[currentLoggedInEmployee] || '';
+        }
+        
+        updateTokenStatus();
+        
+        const modal = document.getElementById('settingsModal');
+        if (modal) {
+            modal.classList.add('active');
+            console.log('✅ Модальное окно настроек открыто');
+        }
     }
 
     // ========== ФУНКЦИИ ДЛЯ АВТОРИЗАЦИИ ==========
@@ -2367,7 +2381,6 @@
         if (modal) modal.classList.add('active');
     }
 
-    // ========== УВЕДОМЛЕНИЯ ==========
     function showNotification(message, type = 'success') {
         console.log(`📢 [${type}]: ${message}`);
         
@@ -2389,14 +2402,12 @@
     function init() {
         console.log('📄 Инициализация приложения');
         
-        // Загружаем сохраненный токен
         const savedToken = localStorage.getItem('github_token');
         if (savedToken) {
             githubToken = savedToken;
             console.log('✅ Токен загружен из localStorage');
         }
         
-        // Заполняем селекты месяцев
         const startSel = document.getElementById('startMonth');
         const endSel = document.getElementById('endMonth');
         
@@ -2413,7 +2424,6 @@
             endSel.value = currentEndMonth;
         }
         
-        // Кнопка настроек
         const settingsBtn = document.getElementById('settingsBtn');
         if (settingsBtn) {
             settingsBtn.addEventListener('click', function(e) {
@@ -2432,7 +2442,6 @@
             console.log('✅ Обработчик кнопки настроек установлен');
         }
         
-        // Кнопка добавления события
         const addBtn = document.getElementById('addEventBtn');
         if (addBtn) {
             addBtn.addEventListener('click', function() {
@@ -2448,7 +2457,6 @@
             });
         }
         
-        // Кнопка выхода
         const logoutBtn = document.getElementById('logoutBtn');
         if (logoutBtn) {
             logoutBtn.addEventListener('click', function() {
@@ -2459,7 +2467,6 @@
             });
         }
         
-        // Кнопка применения диапазона месяцев
         const applyBtn = document.getElementById('applyMonthRange');
         if (applyBtn) {
             applyBtn.addEventListener('click', function() {
@@ -2474,7 +2481,6 @@
             });
         }
         
-        // Кнопки прокрутки
         const wrapper = document.getElementById('scheduleWrapper');
         const scrollLeft = document.getElementById('scrollLeft');
         const scrollRight = document.getElementById('scrollRight');
@@ -2491,12 +2497,9 @@
             });
         }
         
-        // Кнопка сохранения настроек
         const saveSettingsBtn = document.getElementById('saveSettingsBtnTop');
         if (saveSettingsBtn) {
             saveSettingsBtn.addEventListener('click', async function() {
-                saveGitHubToken();
-                
                 if (currentLoggedInEmployee) {
                     const newPassword = document.getElementById('parol')?.value.trim();
                     if (newPassword) {
@@ -2535,7 +2538,6 @@
             });
         }
         
-        // Закрытие модальных окон
         const closeEventModal = document.getElementById('closeEventModal');
         if (closeEventModal) {
             closeEventModal.addEventListener('click', () => {
@@ -2570,7 +2572,6 @@
             });
         }
         
-        // Закрытие по клику вне модального окна
         window.addEventListener('click', (e) => {
             if (e.target.classList && e.target.classList.contains('modal')) {
                 e.target.classList.remove('active');
@@ -2580,7 +2581,6 @@
             }
         });
         
-        // Обработчики для модального окна входа
         const loginSearch = document.getElementById('loginEmployeeSearch');
         if (loginSearch) {
             loginSearch.addEventListener('input', function(e) {
@@ -2686,7 +2686,6 @@
             });
         }
         
-        // Обработчики для событий
         const eventDateStart = document.getElementById('eventDateStart');
         const eventDateEnd = document.getElementById('eventDateEnd');
         const d1Field = document.getElementById('d1Field');
@@ -2732,7 +2731,6 @@
             });
         }
         
-        // Обработчик клика на таблицу
         const scheduleBody = document.getElementById('scheduleBody');
         if (scheduleBody) {
             scheduleBody.addEventListener('click', (e) => {
@@ -2827,7 +2825,6 @@
             });
         }
         
-        // Кнопка сохранения события
         const saveEventBtn = document.getElementById('saveEventBtn');
         if (saveEventBtn) {
             saveEventBtn.addEventListener('click', async ()=>{
@@ -2890,7 +2887,6 @@
             });
         }
         
-        // Кнопка удаления события
         const deleteEventBtn = document.getElementById('deleteEventBtn');
         if (deleteEventBtn) {
             deleteEventBtn.addEventListener('click', async ()=>{
@@ -2907,7 +2903,6 @@
             });
         }
         
-        // Кнопки добавления в настройках
         const addEmployeeBtn = document.getElementById('addEmployeeBtn');
         if (addEmployeeBtn) {
             addEmployeeBtn.addEventListener('click', ()=>{
@@ -2993,7 +2988,6 @@
             });
         }
         
-        // Таймер
         setInterval(() => {
             let now = new Date();
             let h = ('0' + now.getHours()).slice(-2);
@@ -3007,7 +3001,6 @@
             }
         }, 1000);
         
-        // Загружаем данные
         showLoading();
         Promise.all([loadConfig(), loadEvents()]).then(() => {
             renderSchedule();
@@ -3021,7 +3014,6 @@
         });
     }
 
-    // Запускаем инициализацию
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     } else {
