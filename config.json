@@ -5,6 +5,12 @@
       "title": "Инж.эл",
       "group": "ПНР",
       "isActive": true
+    },
+    {
+      "name": "Мешков Иванов",
+      "title": "Инж.эл",
+      "group": "ПНР",
+      "isActive": false
     }
   ],
   "statuses": [],
