@@ -242,6 +242,8 @@
   "shortDays": [
     66
   ],
-  "employeePasswords": {},
+  "employeePasswords": {
+    "Мешков Руслан": "00"
+  },
   "currentYear": 2026
 }
