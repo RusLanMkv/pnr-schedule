@@ -2,7 +2,9 @@
   "events": [
     {
       "id": 1,
-      "employeeIndices": [0],
+      "employeeIndices": [
+        0
+      ],
       "startOffset": 9,
       "endOffset": 14,
       "statusName": "Командировка",
@@ -17,7 +19,9 @@
     },
     {
       "id": 2,
-      "employeeIndices": [1],
+      "employeeIndices": [
+        1
+      ],
       "startOffset": 36,
       "endOffset": 39,
       "statusName": "Отпуск",
@@ -32,7 +36,9 @@
     },
     {
       "id": 3,
-      "employeeIndices": [2],
+      "employeeIndices": [
+        2
+      ],
       "startOffset": 19,
       "endOffset": 21,
       "statusName": "Обучение",
