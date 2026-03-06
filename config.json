@@ -209,6 +209,12 @@
       "title": "Рук.ПО",
       "group": "ПО",
       "isActive": false
+    },
+    {
+      "name": "васечкин вася",
+      "title": "Рук.ПО",
+      "group": "ПО",
+      "isActive": false
     }
   ],
   "statuses": [
