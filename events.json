@@ -1,0 +1,91 @@
+{
+  "events": [
+    {
+      "id": 1,
+      "employeeIndices": [0],
+      "startOffset": 9,
+      "endOffset": 14,
+      "statusName": "Командировка",
+      "comment": "ОДК Стар",
+      "fact": false,
+      "d1": 2,
+      "d2": 2,
+      "createdBy": "Богомолов Константин",
+      "createdAt": "2026-03-06T10:30:00.000Z",
+      "updatedBy": null,
+      "updatedAt": null
+    },
+    {
+      "id": 2,
+      "employeeIndices": [1],
+      "startOffset": 36,
+      "endOffset": 39,
+      "statusName": "Отпуск",
+      "comment": "",
+      "fact": false,
+      "d1": 1,
+      "d2": 1,
+      "createdBy": "Лобанов Александр",
+      "createdAt": "2026-03-06T10:31:00.000Z",
+      "updatedBy": null,
+      "updatedAt": null
+    },
+    {
+      "id": 3,
+      "employeeIndices": [2],
+      "startOffset": 19,
+      "endOffset": 21,
+      "statusName": "Обучение",
+      "comment": "Элинс",
+      "fact": true,
+      "d1": 0,
+      "d2": 0,
+      "createdBy": "Титов Григорий",
+      "createdAt": "2026-03-06T10:32:00.000Z",
+      "updatedBy": null,
+      "updatedAt": null
+    }
+  ],
+  "cellData": {
+    "0_9": 1,
+    "0_10": 1,
+    "0_11": 1,
+    "0_12": 1,
+    "0_13": 1,
+    "0_14": 1,
+    "1_36": 2,
+    "1_37": 2,
+    "1_38": 2,
+    "1_39": 2,
+    "2_19": 3,
+    "2_20": 3,
+    "2_21": 3
+  },
+  "nextEventId": 4,
+  "changeHistory": [
+    {
+      "id": 1,
+      "action": "create",
+      "eventId": 1,
+      "user": "Богомолов Константин",
+      "timestamp": "2026-03-06T10:30:00.000Z",
+      "details": "Создано событие: Командировка для Богомолов Константин"
+    },
+    {
+      "id": 2,
+      "action": "create",
+      "eventId": 2,
+      "user": "Лобанов Александр",
+      "timestamp": "2026-03-06T10:31:00.000Z",
+      "details": "Создано событие: Отпуск для Лобанов Александр"
+    },
+    {
+      "id": 3,
+      "action": "create",
+      "eventId": 3,
+      "user": "Титов Григорий",
+      "timestamp": "2026-03-06T10:32:00.000Z",
+      "details": "Создано событие: Обучение для Титов Григорий"
+    }
+  ]
+}
