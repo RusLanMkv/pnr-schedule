@@ -10,43 +10,43 @@
       "name": "Лобанов Александр",
       "title": "Вед.инж",
       "group": "ПО",
-      "isActive": true
+      "isActive": false
     },
     {
       "name": "Титов Григорий",
       "title": "Ст.инж",
       "group": "ПО",
-      "isActive": true
+      "isActive": false
     },
     {
       "name": "Сечков Сергей",
       "title": "Ст.инж",
       "group": "ПО",
-      "isActive": true
+      "isActive": false
     },
     {
       "name": "Горбанев Сергей",
       "title": "Ст.инж",
       "group": "ПО",
-      "isActive": true
+      "isActive": false
     },
     {
       "name": "Афонченков Вячеслав",
       "title": "Ст.инж",
       "group": "ПО",
-      "isActive": true
+      "isActive": false
     },
     {
       "name": "Соколов Артем",
       "title": "инж",
       "group": "ПО",
-      "isActive": true
+      "isActive": false
     },
     {
       "name": "Климов Алексей",
       "title": "инж",
       "group": "ПО",
-      "isActive": true
+      "isActive": false
     },
     {
       "name": "Таначёв Антон",
@@ -58,37 +58,37 @@
       "name": "Александров Михаил",
       "title": "Инж.эл",
       "group": "ПНР",
-      "isActive": true
+      "isActive": false
     },
     {
       "name": "Балакин Владимир",
       "title": "Инж.эл",
       "group": "ПНР",
-      "isActive": true
+      "isActive": false
     },
     {
       "name": "Гончарук Олег",
       "title": "Инж.эл",
       "group": "ПНР",
-      "isActive": true
+      "isActive": false
     },
     {
       "name": "Захаренков Алексей",
       "title": "Инж.эл",
       "group": "ПНР",
-      "isActive": true
+      "isActive": false
     },
     {
       "name": "Иманутинов Андрей",
       "title": "Инж.эл",
       "group": "ПНР",
-      "isActive": true
+      "isActive": false
     },
     {
       "name": "Кириллов Макар",
       "title": "Инж.эл",
       "group": "ПНР",
-      "isActive": true
+      "isActive": false
     },
     {
       "name": "Мешков Руслан",
@@ -106,55 +106,55 @@
       "name": "Петров Юрий",
       "title": "Инж.эл",
       "group": "ПНР",
-      "isActive": true
+      "isActive": false
     },
     {
       "name": "Смирнов Руслан",
       "title": "Ст.Инж.эл",
       "group": "ПНР",
-      "isActive": true
+      "isActive": false
     },
     {
       "name": "Шаделко Михаил",
       "title": "Вед.Инж.эл",
       "group": "ПНР",
-      "isActive": true
+      "isActive": false
     },
     {
       "name": "Иволгин Иван",
       "title": "Рук.РП",
       "group": "РП",
-      "isActive": true
+      "isActive": false
     },
     {
       "name": "Беляев Александр",
       "title": "РП",
       "group": "РП",
-      "isActive": true
+      "isActive": false
     },
     {
       "name": "Зайцев Денис",
       "title": "РП",
       "group": "РП",
-      "isActive": true
+      "isActive": false
     },
     {
       "name": "Макаров Григорий",
       "title": "РП",
       "group": "РП",
-      "isActive": true
+      "isActive": false
     },
     {
       "name": "Кальная Татьяна",
       "title": "Админ",
       "group": "АД",
-      "isActive": true
+      "isActive": false
     },
     {
       "name": "Таначёва Елена",
       "title": "Админ",
       "group": "АД",
-      "isActive": true
+      "isActive": false
     },
     {
       "name": "Болденков Алексей",
@@ -166,49 +166,43 @@
       "name": "Марченко Станислав",
       "title": "Спец.ИР",
       "group": "ИР",
-      "isActive": true
+      "isActive": false
     },
     {
       "name": "Максимова Людмила",
       "title": "Спец.ИР",
       "group": "ИР",
-      "isActive": true
+      "isActive": false
     },
     {
       "name": "Снопков Никита",
       "title": "Рук.АД",
       "group": "АД",
-      "isActive": true
+      "isActive": false
     },
     {
       "name": "Аболонко Дмитрий",
       "title": "Аналитик",
       "group": "АД",
-      "isActive": true
+      "isActive": false
     },
     {
       "name": "Недлин Дмитрий",
       "title": "БА",
       "group": "БА",
-      "isActive": true
+      "isActive": false
     },
     {
       "name": "Катеринич Марина",
       "title": "БА",
       "group": "БА",
-      "isActive": true
+      "isActive": false
     },
     {
       "name": "Коченина Василиса",
       "title": "БА",
       "group": "БА",
-      "isActive": true
-    },
-    {
-      "name": "Мешков Руслан",
-      "title": "Инж.эл",
-      "group": "ПНР",
-      "isActive": true
+      "isActive": false
     }
   ],
   "statuses": [
