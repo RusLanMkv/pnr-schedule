@@ -1656,48 +1656,86 @@
     }
 
     function renderSettingsEmployees() {
-        const container = document.getElementById('employeesGroupContainer');
-        if (!container) return;
-        
-        const groups = ['ПО','ПНР','РП','ИР','АД','БА'];
-        const titles = ['Рук.ПО','Вед.инж','Ст.инж','инж','Рук.ПНР','Вед.Инж.эл','Ст.Инж.эл','Инж.эл','Рук.РП','РП','Рук.ИР','Спец.ИР','Админ','Рук.АД','Аналитик','БА'];
-        
-        container.innerHTML = employeeList.map((e, i) => `
-            <div>
-                <span>${e.name}</span>
-                <select data-idx="${i}" class="emp-group">${groups.map(g => `<option ${e.group === g ? 'selected' : ''}>${g}</option>`).join('')}</select>
-                <select data-idx="${i}" class="emp-title">${titles.map(t => `<option ${e.title === t ? 'selected' : ''}>${t}</option>`).join('')}</select>
-                <input type="checkbox" data-idx="${i}" class="emp-active" ${e.isActive ? 'checked' : ''}>
-                <button data-idx="${i}" class="remove-emp">🗑️</button>
-            </div>`).join('');
-            
-        document.querySelectorAll('.emp-group').forEach(s => s.addEventListener('change', function(){ 
-            employeeList[this.dataset.idx].group = this.value; 
-            renderSchedule(); 
-            saveConfig();
-        }));
-        
-        document.querySelectorAll('.emp-title').forEach(s => s.addEventListener('change', function(){ 
-            employeeList[this.dataset.idx].title = this.value; 
-            renderSchedule(); 
-            saveConfig();
-        }));
-        
-        document.querySelectorAll('.remove-emp').forEach(b => b.addEventListener('click', function(e){ 
-            employeeList.splice(e.target.dataset.idx,1); 
-            renderSchedule(); 
-            renderSettingsEmployees(); 
-            renderLoginEmployeeList('');
-            saveConfig();
-        }));
-        
-        document.querySelectorAll('.emp-active').forEach(cb => cb.addEventListener('change', function(){ 
-            employeeList[this.dataset.idx].isActive = this.checked; 
-            renderSchedule(); 
-            renderLoginEmployeeList('');
-            saveConfig();
-        }));
+    console.log('🔄 Рендеринг списка сотрудников');
+    const container = document.getElementById('employeesGroupContainer');
+    if (!container) {
+        console.error('❌ Контейнер employeesGroupContainer не найден');
+        return;
     }
+    
+    if (!employeeList || employeeList.length === 0) {
+        console.log('Список сотрудников пуст');
+        container.innerHTML = '<div style="padding: 20px; text-align: center; color: #999;">Нет сотрудников</div>';
+        return;
+    }
+    
+    const groups = ['ПО','ПНР','РП','ИР','АД','БА'];
+    const titles = ['Рук.ПО','Вед.инж','Ст.инж','инж','Рук.ПНР','Вед.Инж.эл','Ст.Инж.эл','Инж.эл','Рук.РП','РП','Рук.ИР','Спец.ИР','Админ','Рук.АД','Аналитик','БА'];
+    
+    let html = '';
+    employeeList.forEach((e, i) => {
+        html += `<div style="display: flex; align-items: center; gap: 10px; padding: 8px 5px; border-bottom: 1px solid #e0e0e0; flex-wrap: wrap;">
+            <span style="width: 40%; font-size: 14px; font-weight: 500;">${e.name || 'Без имени'}</span>
+            <select data-idx="${i}" class="emp-group" style="padding: 6px; font-size: 12px; width: 15%; min-height: 36px;">
+                ${groups.map(g => `<option ${e.group === g ? 'selected' : ''}>${g}</option>`).join('')}
+            </select>
+            <select data-idx="${i}" class="emp-title" style="padding: 6px; font-size: 12px; width: 15%; min-height: 36px;">
+                ${titles.map(t => `<option ${e.title === t ? 'selected' : ''}>${t}</option>`).join('')}
+            </select>
+            <input type="checkbox" data-idx="${i}" class="emp-active" ${e.isActive ? 'checked' : ''} style="width: 24px; height: 24px; margin: 0;">
+            <button data-idx="${i}" class="remove-emp" style="padding: 6px 10px; font-size: 12px; width: auto; min-height: 36px;">🗑️</button>
+        </div>`;
+    });
+    
+    container.innerHTML = html;
+    console.log(`✅ Отображено ${employeeList.length} сотрудников`);
+    
+    // Добавляем обработчики
+    document.querySelectorAll('.emp-group').forEach(s => {
+        s.addEventListener('change', function() { 
+            const idx = this.dataset.idx;
+            employeeList[idx].group = this.value; 
+            renderSchedule(); 
+            saveConfig();
+            console.log(`Группа сотрудника изменена на ${this.value}`);
+        });
+    });
+    
+    document.querySelectorAll('.emp-title').forEach(s => {
+        s.addEventListener('change', function() { 
+            const idx = this.dataset.idx;
+            employeeList[idx].title = this.value; 
+            renderSchedule(); 
+            saveConfig();
+            console.log(`Должность сотрудника изменена на ${this.value}`);
+        });
+    });
+    
+    document.querySelectorAll('.remove-emp').forEach(b => {
+        b.addEventListener('click', function(e) { 
+            const idx = e.target.dataset.idx;
+            if (confirm('Удалить сотрудника?')) {
+                employeeList.splice(idx, 1); 
+                renderSchedule(); 
+                renderSettingsEmployees(); 
+                renderLoginEmployeeList('');
+                saveConfig();
+                console.log('Сотрудник удален');
+            }
+        });
+    });
+    
+    document.querySelectorAll('.emp-active').forEach(cb => {
+        cb.addEventListener('change', function() { 
+            const idx = this.dataset.idx;
+            employeeList[idx].isActive = this.checked; 
+            renderSchedule(); 
+            renderLoginEmployeeList('');
+            saveConfig();
+            console.log(`Статус сотрудника изменен на ${this.checked ? 'активен' : 'неактивен'}`);
+        });
+    });
+}
     
     function renderSettingsStatuses() {
         const container = document.getElementById('statusesList');
