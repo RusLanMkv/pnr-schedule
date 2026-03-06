@@ -1,39 +1,6 @@
 {
-  "events": [
-    {
-      "id": 1,
-      "employeeIndices": [
-        0
-      ],
-      "startOffset": 68,
-      "endOffset": 72,
-      "statusName": "Командировка",
-      "comment": "",
-      "fact": false,
-      "d1": 0,
-      "d2": 0,
-      "createdBy": "Мешков Руслан",
-      "createdAt": "2026-03-06T10:02:00.539Z",
-      "updatedBy": null,
-      "updatedAt": null
-    }
-  ],
-  "cellData": {
-    "0_68": 1,
-    "0_69": 1,
-    "0_70": 1,
-    "0_71": 1,
-    "0_72": 1
-  },
-  "nextEventId": 2,
-  "changeHistory": [
-    {
-      "id": 1,
-      "action": "create",
-      "eventId": 1,
-      "user": "Мешков Руслан",
-      "timestamp": "2026-03-06T10:02:00.539Z",
-      "details": "Создано событие: Командировка для Мешков Руслан"
-    }
-  ]
+  "events": [],
+  "cellData": {},
+  "nextEventId": 1,
+  "changeHistory": []
 }
