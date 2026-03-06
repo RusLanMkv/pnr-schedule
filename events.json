@@ -16,6 +16,23 @@
       "createdAt": "2026-03-06T10:50:43.626Z",
       "updatedBy": null,
       "updatedAt": null
+    },
+    {
+      "id": 2,
+      "employeeIndices": [
+        16
+      ],
+      "startOffset": 74,
+      "endOffset": 79,
+      "statusName": "Командировка",
+      "comment": "",
+      "fact": false,
+      "d1": 0,
+      "d2": 0,
+      "createdBy": "Мешков Руслан",
+      "createdAt": "2026-03-06T10:52:30.724Z",
+      "updatedBy": null,
+      "updatedAt": null
     }
   ],
   "cellData": {
@@ -23,9 +40,15 @@
     "15_69": 1,
     "15_70": 1,
     "15_71": 1,
-    "15_72": 1
+    "15_72": 1,
+    "16_74": 2,
+    "16_75": 2,
+    "16_76": 2,
+    "16_77": 2,
+    "16_78": 2,
+    "16_79": 2
   },
-  "nextEventId": 2,
+  "nextEventId": 3,
   "changeHistory": [
     {
       "id": 1,
@@ -34,6 +57,14 @@
       "user": "Мешков Руслан",
       "timestamp": "2026-03-06T10:50:43.626Z",
       "details": "Создано событие: Командировка для Мешков Руслан"
+    },
+    {
+      "id": 2,
+      "action": "create",
+      "eventId": 2,
+      "user": "Мешков Руслан",
+      "timestamp": "2026-03-06T10:52:30.724Z",
+      "details": "Создано событие: Командировка для Павлов Виталий"
     }
   ]
 }
