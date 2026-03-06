@@ -1,20 +1,8 @@
 {
-  "employeeList": [
-    { "name": "Богомолов Константин", "title": "Рук. ПО", "group": "ПО", "isActive": true },
-    { "name": "Лобанов Александр", "title": "Вед.инж", "group": "ПО", "isActive": true }
-  ],
-  "statuses": [
-    { "name": "Командировка", "color": "#00ff1e" },
-    { "name": "Отпуск", "color": "#060240" },
-    { "name": "Больничный", "color": "#302ea8" },
-    { "name": "Обучение", "color": "#5ee6f7" },
-    { "name": "Офис", "color": "#8d53f9" }
-  ],
-  "holidays": [
-    { "dateOffset": 0, "name": "Новый год", "color": "#ffb6b6" },
-    { "dateOffset": 30, "name": "День защитника", "color": "#b0e0e6" }
-  ],
-  "shortDays": [66],
+  "employeeList": [],
+  "statuses": [],
+  "holidays": [],
+  "shortDays": [],
   "employeePasswords": {},
   "currentYear": 2026
 }
