@@ -1,0 +1,3012 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes">
+    <title>График ПНР — с сохранением на GitHub</title>
+    <style>
+        /* ========== ВСЕ СТИЛИ ========== */
+        * {
+            box-sizing: border-box;
+            font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+        }
+        body {
+            background: #030a41;
+            margin: 0;
+            padding: 2px;
+            min-height: 100vh;
+        }
+        .app-container {
+            width: 100%;
+            max-width: 100%;
+            background: white;
+            border-radius: 16px;
+            box-shadow: 0 6px 18px rgba(0,0,0,0.08);
+            padding: 10px 8px;
+        }
+        .compact-header {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: center;
+            gap: 3px;
+            margin-bottom: 1px;
+        }
+        .compact-header h1 {
+            font-size: 1.2rem;
+            margin: 0;
+            color: #1e2f4d;
+            white-space: nowrap;
+        }
+        .btn-group {
+            display: flex;
+            gap: 3px;
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .user-info {
+            display: flex;
+            align-items: center;
+            background: #e3e9f2;
+            border-radius: 20px;
+            padding: 2px 10px;
+            font-size: 0.8rem;
+            font-weight: 500;
+            color: #1e3a6b;
+            margin-left: 5px;
+            white-space: nowrap;
+        }
+        .user-info span {
+            max-width: 150px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+        }
+        .logout-btn {
+            background: none;
+            border: none;
+            color: #666;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0 5px;
+            margin-left: 3px;
+        }
+        .logout-btn:hover {
+            color: #b00;
+        }
+        button {
+            background: white;
+            border: 2px solid #030f75;
+            color: #2b4b7c;
+            padding: 2px 15px;
+            border-radius: 15px;
+            font-size: 11px;
+            font-weight: 300;
+            cursor: pointer;
+            transition: 0.1s;
+            -webkit-tap-highlight-color: transparent;
+            touch-action: manipulation;
+        }
+        button.primary {
+            background: #1e3a6b;
+            color: white;
+            border-color: #1e3a6b;
+        }
+        button.small {
+            padding: 2px 15px;
+            font-size: 12px;
+            line-height: 1;
+            min-height: 20px;
+            height: auto;
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+            pointer-events: none;
+        }
+        .month-indicator {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: #edf2f9;
+            border-radius: 12px;
+            padding: 3px 10px;
+            font-size: 0.8rem;
+            white-space: nowrap;
+        }
+        .month-indicator select {
+            padding: 2px 8px;
+            border-radius: 12px;
+            border: 1px solid #071364;
+            background: rgb(235, 233, 248);
+            font-size: 0.75rem;
+        }
+        .legend-panel {
+            background: #c3c6cc;
+            border-radius: 30px;
+            padding: 3px 9px;
+            display: none;
+            flex-wrap: wrap;
+            gap: 6px 12px;
+            font-size: 0.7rem;
+            align-items: center;
+        }
+        .legend-item {
+            display: flex;
+            align-items: center;
+            gap: 2px;
+        }
+        .color-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+        .sticky-scroll-container {
+            position: sticky;
+            top: 0;
+            z-index: 1;
+            background: rgb(167, 163, 163);
+            padding: 3px 0 2px;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            border-bottom: 2px solid #506074;
+            margin-bottom: 1px;
+        }
+        .schedule-wrapper {
+            overflow-x: auto;
+            overflow-y: auto;
+            border-radius: 12px;
+            border: 1px solid #150522;
+            background: rgb(169, 185, 203);
+            max-height: calc(100vh - 120px);
+            -webkit-overflow-scrolling: touch;
+            position: relative;
+            margin-top: -5px;
+        }
+        .schedule-wrapper::-webkit-scrollbar {
+            height: 9px;
+            width: 9px;
+        }
+        .schedule-wrapper::-webkit-scrollbar-thumb {
+            background: #322f31;
+            border-radius: 6px;
+        }
+        table {
+            border-collapse: collapse;
+            border: 2px solid #030942;
+            font-size: 11px;
+            font-weight: bold;
+            color: rgb(0, 0, 2);
+            white-space: nowrap;
+            table-layout: fixed;
+        }
+        th, td {
+            border: 1px solid #939293;
+            padding: 1px 1px;
+            text-align: right;
+            padding-right: 1px;
+            vertical-align: middle;
+            background-color: rgb(255, 251, 255);
+            width: 22px;
+            min-width: 22px;
+            max-width: 22px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            height: 15px;
+            line-height: 15px;
+        }
+        th.month-header {
+            border: 2px solid black;
+            font-size: 10px;
+            height: 12px;
+            line-height: 10px;
+            text-align: center;
+            z-index: 22;
+        }
+        .table-header-weekdays th {
+            text-align: center;
+            vertical-align: middle;
+            background: #e0e4ea;
+            font-size: 9px;
+            font-weight: 600;
+            border: 1px solid #5a5f73;
+            width: 22px;
+            min-width: 22px;
+            max-width: 22px;
+            height: 12px;
+            line-height: 14px;
+            padding: 0 1px;
+            z-index: 20;
+            top: 0;
+            position: sticky;
+        }
+        .table-header-days th {
+            text-align: center;
+            vertical-align: middle;
+            background: #d0d3da;
+            font-size: 10px;
+            font-weight: 600;
+            border: 1px solid #2d2f3a;
+            width: 22px;
+            min-width: 22px;
+            max-width: 22px;
+            height: 10px;
+            line-height: 16px;
+            padding: 0 1px;
+            z-index: 20;
+            top: 14px;
+            position: sticky;
+        }
+        .weekend-pattern {
+            background-image: linear-gradient(to right, #fa9c9c99, #fa737391);
+        }
+        .holiday-pattern {
+            background-image: linear-gradient(to right, #f86565af, #fb2c2c8a);
+        }
+        .weekend-text, .holiday-text {
+            color: #d32f2f !important;
+            font-weight: 700;
+        }
+        .shortday::after {
+            content: " *";
+            font-weight: bold;
+            color: rgb(253, 43, 43);
+        }
+        .employee-col {
+            width: 100px;
+            min-width: 90px;
+            max-width: 100px;
+            position: sticky;
+            left: 0;
+            background: rgb(214, 214, 216);
+            z-index: 15;
+            font-weight: 500;
+            text-align: left;
+            padding: 2px 2px 2px 6px;
+            border-right: 2px solid #576371;
+            font-size: 9px;
+            line-height: 1;
+            height: auto;
+            min-height: 25px;
+            cursor: pointer;
+        }
+        .employee-col:hover {
+            background: #b0b0b5;
+        }
+        .group-row td {
+            font-size: 9px;
+            font-weight: bold;
+            background: #cecfca;
+            font-weight: 600;
+            text-align: left;
+            padding: 1px 5px;
+            border-bottom: 2px solid #061a97;
+            width: auto;
+            min-width: auto;
+            max-width: none;
+            height: 15px;
+            line-height: 5px;
+            position: sticky;
+            left: 5;
+            z-index: 10;
+        }
+        .employee-col span {
+            font-size: 0.5rem;
+            color: #574a6f;
+        }
+        .event-cell {
+            position: relative;
+            padding: 0 !important;
+            overflow: visible;
+            background-color: transparent !important;
+            border: none;
+            width: auto;
+            min-width: auto;
+            max-width: none;
+        }
+        .event-background {
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            right: 1px;
+            bottom: 1px;
+            background-color: #ffb74a;
+            border-radius: 3px;
+            border: 1px solid;
+            z-index: 1;
+            pointer-events: none;
+        }
+        .event-badge {
+            position: absolute;
+            top: 1px;
+            left: 1px;
+            right: 1px;
+            bottom: 1px;
+            background-color: var(--event-color);
+            border-radius: 3px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            font-size: 9px;
+            font-weight: 500;
+            cursor: pointer;
+            box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+            border: 1px solid;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 0 2px;
+            z-index: 5;
+        }
+        .light-text { color: rgb(3, 3, 3); }
+        .dark-text { color: rgb(255, 255, 255); }
+        .red-border { color: rgb(253, 24, 24); }
+
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(122, 111, 160, 0.482);
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+            backdrop-filter: blur(1px);
+        }
+        .modal.active { display: flex; }
+        .modal-content {
+            background: white;
+            border-radius: 15px;
+            padding: 15px;
+            width: 90%;
+            max-width: 450px;
+            max-height: 90%;
+            overflow-y: auto;
+            -webkit-overflow-scrolling: touch;
+        }
+        .login-content {
+            max-width: 350px;
+        }
+        .modal-content h2 { 
+            margin: 0 0 15px; 
+            color: #210a40; 
+            font-size: 1rem; 
+            text-align: center;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .settings-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            width: 100%;
+        }
+        .settings-user {
+            font-size: 0.8rem;
+            background: #e3e9f2;
+            padding: 3px 10px;
+            border-radius: 20px;
+            color: #1e3a6b;
+            font-weight: 500;
+        }
+        .form-row { margin-bottom: 15px; }
+        .form-row label { font-weight: 500; color: #1b0f2d; display: block; margin-bottom: 5px; font-size: 0.9rem; }
+        input, select, textarea {
+            padding: 10px 12px;
+            border-radius: 12px;
+            border: 1px solid #130d2cf6;
+            font-size: 1rem;
+            width: 100%;
+            -webkit-appearance: none;
+            appearance: none;
+            background: white;
+        }
+        
+        input[type="date"] { min-height: 44px; }
+        select { min-height: 44px; background: white; }
+        
+        .employee-search-container {
+            border: 1.5px solid #1e153e;
+            border-radius: 15px;
+            padding: 8px 15px;
+            background: rgb(235, 235, 237);
+        }
+        #employeeSearchInput {
+            width: 100%;
+            border: none;
+            outline: none;
+            font-size: 1rem;
+            padding: 8px 15px;
+            border-bottom: 1px dashed #2f1c44;
+            margin-bottom: 15px;
+            background: transparent;
+        }
+        .employee-checkbox-list {
+            max-height: 180px;
+            overflow-y: auto;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+            margin-bottom: 10px;
+            -webkit-overflow-scrolling: touch;
+        }
+        .employee-checkbox-item {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 12px 15px;
+            border-radius: 9px;
+            background: #edf3ed;
+            min-height: 44px;
+        }
+        .employee-checkbox-item input[type="checkbox"] { 
+            width: 24px; 
+            height: 24px; 
+            margin: 0; 
+            cursor: pointer;
+            -webkit-appearance: checkbox;
+            appearance: checkbox;
+        }
+        .employee-checkbox-item label { 
+            font-size: 1rem; 
+            margin: 0; 
+            cursor: pointer;
+            flex: 1;
+        }
+        .selected-employees {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 6px;
+            padding: 10px 15px;
+            background: #e6f0fa;
+            border-radius: 15px;
+            min-height: 40px;
+            margin-top: 8px;
+        }
+        .selected-employee-tag {
+            background: #102242;
+            color: white;
+            padding: 8px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            min-height: 36px;
+        }
+        .selected-employee-tag button {
+            background: none;
+            border: none;
+            color: white;
+            font-size: 1.2rem;
+            cursor: pointer;
+            padding: 0 6px;
+            margin: 0;
+            min-width: auto;
+            line-height: 1;
+        }
+        .date-group { 
+            display: flex; 
+            gap: 8px; 
+            flex-wrap: wrap;
+            align-items: center;
+        }
+        .date-group input[type="date"] {
+            flex: 1;
+            min-width: 120px;
+        }
+        .d-field {
+            width: 40px !important;
+            min-width: 40px !important;
+            max-width: 40px !important;
+            padding: 10px 2px !important;
+            text-align: center;
+            font-size: 12px;
+            font-weight: bold;
+            border-radius: 12px;
+            border: 1px solid #130d2cf6;
+            -webkit-appearance: menulist;
+            appearance: menulist;
+        }
+        .status-row { 
+            display: flex; 
+            align-items: center; 
+            gap: 12px; 
+            flex-wrap: wrap; 
+        }
+        .fact-checkbox {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            background: #f0f4fa;
+            padding: 8px 16px;
+            border-radius: 30px;
+            font-size: 0.9rem;
+            min-height: 44px;
+        }
+        .fact-checkbox input { 
+            width: 24px; 
+            height: 24px; 
+            -webkit-appearance: checkbox; 
+            appearance: checkbox;
+            margin: 0;
+        }
+        .warning-message {
+            background: #fff1e0;
+            border-left: 4px solid #e68a2e;
+            padding: 12px 14px;
+            border-radius: 16px;
+            font-size: 0.9rem;
+            color: #864c1f;
+            margin: 10px 0;
+            word-break: break-word;
+        }
+        .error-message {
+            background: #ffe0e0;
+            border-left: 4px solid #e62e2e;
+            padding: 12px 14px;
+            border-radius: 16px;
+            font-size: 0.9rem;
+            color: #861f1f;
+            margin: 10px 0;
+        }
+        .info-message {
+            background: #e0f0ff;
+            border-left: 4px solid #1e3a6b;
+            padding: 12px 14px;
+            border-radius: 16px;
+            font-size: 0.9rem;
+            color: #1e3a6b;
+            margin: 10px 0;
+            word-break: break-word;
+        }
+        .settings-grid { display: flex; flex-direction: column; gap: 16px; }
+        .holiday-item, .shortday-item {
+            display: flex; gap: 6px; align-items: center; flex-wrap: wrap;
+            background: #f7fafd; padding: 10px 12px; border-radius: 30px; margin: 4px 0;
+            min-height: 44px;
+        }
+        .footer-info { margin-top: 8px; text-align: center; color: #577594; font-size: 0.65rem; }
+        @media screen and (max-width: 768px) { 
+            .modal-content { width: 95vw; } 
+        }
+        .current-date-time { font-family: Arial, Helvetica, sans-serif; font-size: 12px; font-weight: bold; color: rgb(7, 4, 64); }
+
+        #newEmployeeName { width: 40% !important; }
+        #newEmployeeTitle, #newEmployeeGroup { width: 15% !important; }
+        #newEmployeeActive { width: 24px !important; height: 24px !important; margin: auto 5px; -webkit-appearance: checkbox; appearance: checkbox; }
+
+        #employeesGroupContainer > div {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            padding: 8px 5px;
+            border-bottom: 1px solid #e0e0e0;
+            flex-wrap: wrap;
+        }
+        #employeesGroupContainer span:first-child { width: 40% !important; font-size: 14px; font-weight: 500; }
+        #employeesGroupContainer input[type="checkbox"] { 
+            width: 24px !important; 
+            height: 24px !important; 
+            margin: 0;
+            -webkit-appearance: checkbox;
+            appearance: checkbox;
+        }
+        #employeesGroupContainer select { padding: 6px; font-size: 12px; width: 15% !important; min-height: 36px; }
+        #employeesGroupContainer button.remove-emp { padding: 6px 10px; font-size: 12px; width: auto; min-height: 36px; }
+        #statusesList span:first-of-type { min-width: 15px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        
+        #loginEmployeeList {
+            position: absolute;
+            width: calc(100% - 30px);
+            background: white;
+            border: 1px solid #130d2c;
+            border-radius: 12px;
+            z-index: 1001;
+            max-height: 150px;
+            overflow-y: auto;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+        }
+
+        #loginEmployeeList .employee-checkbox-item:hover {
+            background: #e0e0e0;
+        }
+
+        #loginSelectedEmployee {
+            margin-top: 5px;
+        }
+
+        .employee-search-container {
+            position: relative;
+        }
+
+        .login-buttons {
+            display: flex;
+            gap: 10px;
+            justify-content: flex-end;
+            margin-top: 20px;
+        }
+        .login-buttons button {
+            flex: 1;
+            min-height: 44px;
+            font-size: 1rem;
+        }
+        #loginMessage {
+            font-size: 0.9rem;
+            margin-top: 10px;
+            text-align: center;
+        }
+        .view-only-modal .form-row input:disabled,
+        .view-only-modal .form-row select:disabled,
+        .view-only-modal .form-row textarea:disabled,
+        .view-only-modal .employee-checkbox-item input:disabled {
+            background: #f5f5f5;
+            opacity: 0.9;
+        }
+
+        .employee-events-list {
+            max-height: 400px;
+            overflow-y: auto;
+            margin-bottom: 15px;
+        }
+        .event-item {
+            background: #f0f4fa;
+            border-radius: 12px;
+            padding: 12px;
+            margin-bottom: 8px;
+            cursor: pointer;
+            transition: background 0.1s;
+            border-left: 4px solid;
+        }
+        .event-item:hover {
+            background: #e0e8f5;
+        }
+        .event-item.current {
+            border-left-color: #00aa00;
+            background: #e6ffe6;
+        }
+        .event-item.future {
+            border-left-color: #0066cc;
+        }
+        .event-item.past {
+            border-left-color: #999999;
+            opacity: 0.7;
+        }
+        .event-item.view-only {
+            cursor: default;
+        }
+        .event-date {
+            font-size: 0.8rem;
+            color: #1e3a6b;
+            font-weight: 500;
+        }
+        .event-status {
+            font-size: 0.9rem;
+            font-weight: 600;
+        }
+        .event-comment {
+            font-size: 0.8rem;
+            color: #4a5568;
+            margin-top: 4px;
+            word-break: break-word;
+        }
+        .event-object {
+            font-size: 0.8rem;
+            color: #2d3748;
+            background: #edf2f7;
+            padding: 2px 8px;
+            border-radius: 12px;
+            display: inline-block;
+            margin-top: 4px;
+        }
+        .event-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 3px;
+            display: inline-block;
+            margin-right: 6px;
+        }
+        .no-events {
+            text-align: center;
+            color: #7f8fa4;
+            padding: 20px;
+        }
+        
+        .event-employees-list {
+            font-size: 12px;
+            color: #1c1c1c;
+            background: #edf2f7;
+            padding: 3px 6px;
+            border-radius: 8px;
+            margin-top: 5px;
+            line-height: 1.3;
+            max-width: 100%;
+            word-break: break-word;
+            white-space: normal;
+        }
+        .event-employees-list span {
+            font-weight: 600;
+            color: #1e3a6b;
+        }
+        
+        .save-notification {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            background: #4CAF50;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 500;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+            z-index: 2000;
+            animation: slideIn 0.3s ease-out;
+            pointer-events: none;
+        }
+        
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .loading-indicator {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.8);
+            color: white;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-size: 16px;
+            z-index: 10000;
+            display: none;
+        }
+        .loading-indicator.active {
+            display: block;
+        }
+
+        .github-token-input {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f0f4fa;
+            border-radius: 8px;
+        }
+        .github-token-input input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #1e3a6b;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+<!-- ========== ЗАЩИТА ОТ ОШИБОК РАСШИРЕНИЙ ========== -->
+<script>
+// Этот скрипт выполнится самым первым и заблокирует ошибки расширений
+(function() {
+    // Перехватываем все ошибки
+    const originalAddEventListener = window.addEventListener;
+    
+    // Оборачиваем addEventListener для защиты
+    window.addEventListener = function(type, listener, options) {
+        if (type === 'error') {
+            const wrappedListener = function(e) {
+                try {
+                    // Игнорируем ошибки от disk-button
+                    if (e.filename && e.filename.includes('disk-button')) {
+                        console.log('🛡️ Блокируем ошибку расширения');
+                        e.preventDefault?.();
+                        e.stopPropagation?.();
+                        return;
+                    }
+                } catch (err) {}
+                
+                if (typeof listener === 'function') {
+                    try {
+                        listener(e);
+                    } catch (err) {
+                        console.log('Ошибка в обработчике:', err);
+                    }
+                }
+            };
+            return originalAddEventListener.call(this, type, wrappedListener, options);
+        }
+        return originalAddEventListener.call(this, type, listener, options);
+    };
+    
+    // Перехватываем ошибки
+    window.addEventListener('error', function(e) {
+        if (e.filename && e.filename.includes('disk-button')) {
+            e.preventDefault();
+            e.stopPropagation();
+            console.log('🛡️ Заблокирована ошибка расширения');
+            return false;
+        }
+    }, true);
+    
+    // Для старых браузеров
+    window.onerror = function(msg, url, line, col, error) {
+        if (url && url.includes('disk-button')) {
+            console.log('🛡️ Заблокирована ошибка расширения (onerror)');
+            return true;
+        }
+        return false;
+    };
+    
+    console.log('✅ Защита от ошибок расширений активирована');
+})();
+</script>
+
+<div class="loading-indicator" id="loadingIndicator">Загрузка данных...</div>
+
+<div class="app-container">
+    <div class="compact-header">
+        <h1>📅 ПНР <span id="currentYearLabel">2026</span></h1>
+        <div class="btn-group">
+            <button class="primary" id="addEventBtn">➕ Новая</button>
+            <button id="settingsBtn">⚙️</button>
+            <div id="userInfoDisplay" class="user-info" style="display: none;">
+                <span id="currentUserName"></span>
+                <button id="logoutBtn" class="logout-btn" title="Выйти">✕</button>
+            </div>
+        </div>
+        <div class="month-indicator">
+            <select id="startMonth" style="padding: 0px 5px; font-size: 0.7rem; min-height: 24px; height: 24px; line-height: 1;"></select>
+            <span>—</span>
+            <select id="endMonth" style="padding: 0px 5px; font-size: 0.7rem; min-height: 24px; height: 24px; line-height: 1;"></select>
+            <button class="small" id="applyMonthRange">OK</button>
+        </div>
+        <div class="current-date-time" id="currentDateTime"></div>
+        <div class="legend-panel" id="legendPanel"></div>
+    </div>
+
+    <div class="sticky-scroll-container" id="stickyScroll">
+        <button class="scroll-btn" id="scrollLeft">◀</button>
+        <div style="flex:1; text-align:center; font-size:0.9rem;">← день →</div>
+        <button class="scroll-btn" id="scrollRight">▶</button>
+    </div>
+
+    <div class="schedule-wrapper" id="scheduleWrapper">
+        <table id="scheduleTable">
+            <thead id="tableHeader"></thead>
+            <tbody id="scheduleBody"></tbody>
+        </table>
+    </div>
+
+    <div class="footer-info">
+        <div class="legend-panel">
+            <div class="legend-item"><span class="color-dot" style="background:#00ff1e;"></span> Командировка</div>
+            <div class="legend-item"><span class="color-dot" style="background:#060240;"></span> Отпуск</div>
+            <div class="legend-item"><span class="color-dot" style="background:#302ea8;"></span> Больничный</div>
+            <div class="legend-item"><span class="color-dot" style="background:#5ee6f7;"></span> Обучение</div>
+            <div class="legend-item"><span class="color-dot" style="background:#8d53f9;"></span> Офис</div>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно входа -->
+<div id="loginModal" class="modal">
+    <div class="modal-content login-content">
+        <h2>🔐 Вход в систему</h2>
+        <div class="form-row">
+            <label>👤 Сотрудник</label>
+            <div class="employee-search-container" style="padding: 5px;">
+                <input type="text" id="loginEmployeeSearch" placeholder="Введите фамилию для поиска..." autocomplete="off" style="margin-bottom: 5px;">
+                <div class="employee-checkbox-list" id="loginEmployeeList" style="max-height: 150px; display: none;"></div>
+                <div class="selected-employees" id="loginSelectedEmployee" style="min-height: 30px; padding: 5px;"></div>
+            </div>
+        </div>
+        <div class="form-row">
+            <label>🔑 Пароль</label>
+            <input type="password" id="loginPassword" placeholder="Введите пароль">
+        </div>
+        <div id="loginMessage" class="warning-message" style="display:none;"></div>
+        <div class="login-buttons">
+            <button id="loginRegisterBtn" disabled>Регистрация</button>
+            <button id="loginOkBtn" disabled>Вход</button>
+            <button id="loginCancelBtn">Отмена</button>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно редактора/просмотра события -->
+<div id="eventModal" class="modal">
+    <div class="modal-content" id="eventModalContent">
+        <span style="float:right; font-size:30px; cursor:pointer;" id="closeEventModal">×</span>
+        <h2 id="eventModalTitle">📌 Редактор события</h2>
+        <div class="form-row">
+            <label>👥 Сотрудники</label>
+            <div class="employee-search-container">
+                <input type="text" id="employeeSearchInput" placeholder="Поиск..." autocomplete="off">
+                <div class="employee-checkbox-list" id="employeeCheckboxList"></div>
+                <div class="selected-employees" id="selectedEmployeesContainer"></div>
+            </div>
+        </div>
+        <div class="date-group">
+            <select id="d1Field" class="d-field">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select>
+            <input type="date" id="eventDateStart">
+            <input type="date" id="eventDateEnd">
+            <select id="d2Field" class="d-field">
+                <option value="0">0</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select>
+        </div>
+        <div class="status-row">
+            <select id="eventStatus" style="flex:2;"></select>
+            <div class="fact-checkbox">
+                <input type="checkbox" id="eventFact"> <label for="eventFact">факт</label>
+            </div>
+        </div>
+        <div class="form-row">
+            <input type="text" id="eventComment" placeholder="Объект / комментарий">
+        </div>
+        <div id="conflictWarning" class="warning-message" style="display:none;"></div>
+        <div id="errorMessage" class="error-message" style="display:none;"></div>
+        <div id="eventInfoMessage" class="info-message" style="display:none;"></div>
+        <div style="display:flex; gap:8px; justify-content:flex-end; margin-top:16px;" id="eventModalButtons">
+            <button id="saveEventBtn" class="primary" style="display:none;">Сохранить</button>
+            <button id="deleteEventBtn" style="border-color:#b00; color:#b00; display:none;">Удалить</button>
+            <button id="closeViewEventBtn">Закрыть</button>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно настроек -->
+<div id="settingsModal" class="modal">
+    <div class="modal-content" style="max-width: 800px;">
+        <h2>
+            <span>⚙️ Настройки</span>
+            <span id="settingsUserInfo" class="settings-user" style="display:none;"></span>
+        </h2>
+        <div class="settings-grid">
+            <div class="github-token-input">
+                <label>🔑 GitHub Token (для автоматического сохранения)</label>
+                <input type="password" id="githubToken" placeholder="Введите ваш GitHub Personal Access Token">
+                <small style="color: #666;">Токен нужен для сохранения изменений на GitHub</small>
+            </div>
+            <div style="border-top:2px solid #3104af; padding-top:6px;">
+                <h3>👥 Сотрудники</h3>
+                <div id="employeesGroupContainer" style="max-height:300px; overflow-y:auto;"></div>
+                <div style="display:flex; gap:5px; margin:10px 0; flex-wrap:wrap;">
+                    <input type="text" id="newEmployeeName" placeholder="ФИО" style="flex:2; min-width:150px;">
+                    <select id="newEmployeeGroup" style="width:auto; min-width:70px;">
+                        <option>ПО</option><option>ПНР</option><option>РП</option><option>ИР</option><option>АД</option><option>БА</option>
+                    </select>
+                    <select id="newEmployeeTitle" style="width:auto; min-width:100px;">
+                        <option>Рук.ПО</option><option>Вед.инж</option><option>Ст.инж</option><option>инж</option>
+                        <option>Рук.ПНР</option><option>Вед.Инж.эл</option><option>Ст.Инж.эл</option><option>Инж.эл</option>
+                        <option>Рук.РП</option><option>РП</option><option>Рук.ИР</option><option>Спец.ИР</option>
+                        <option>Админ</option><option>Рук.АД</option><option>Аналитик</option><option>БА</option>
+                    </select>
+                    <input type="checkbox" id="newEmployeeActive">
+                    <button id="addEmployeeBtn">➕</button>
+                </div>
+            </div>
+            <div style="border-top:2px solid #03157b; padding-top:6px;">
+                <h3>🎨 Статусы (цвет фона)</h3>
+                <div id="statusesList"></div>
+                <div style="display:flex; gap:5px; margin:8px 0; flex-wrap:wrap;">
+                    <input type="text" id="newStatusName" placeholder="статус" style="flex:1;">
+                    <input type="color" id="newStatusColor" value="#a5d6ff" style="width:60px; height:44px;">
+                    <button id="addStatusBtn">➕</button>
+                </div>
+            </div>
+            <div style="border-top:2px solid #120289; padding-top:6px;">
+                <h3>🎉 Праздничные дни</h3>
+                <div id="holidaysList"></div>
+                <div style="display:flex; gap:5px; margin:8px 0; flex-wrap:wrap;">
+                    <input type="date" id="newHolidayDate" style="flex:1;">
+                    <button id="addHolidayBtn">➕</button>
+                </div>
+            </div>
+            <div style="border-top:2px solid #090264; padding-top:6px;">
+                <h3>⏱️ Сокращённые дни (*)</h3>
+                <div id="shortdaysList"></div>
+                <div style="display:flex; gap:5px; margin:8px 0; flex-wrap:wrap;">
+                    <input type="date" id="newShortdayDate" style="flex:1;">
+                    <button id="addShortdayBtn">➕</button>
+                </div>
+            </div>
+        </div>
+        <div style="display: flex; gap: 15px; margin-top: 18px; align-items: center; border-top: 2px solid #060240; padding-top: 15px; flex-wrap: wrap;">
+            <div style="display: flex; gap: 15px; align-items: center; flex-wrap: wrap;">
+                <input type="text" id="parol" name="parol" maxlength="6" pattern="^[A-Za-zА-Яа-я]{1,6}$" placeholder="Пароль" style="width: 120px; min-height:44px;" value="">
+                <input type="number" id="yearField" placeholder="Год" min="2000" max="2100" style="width: 100px; min-height:44px;">
+            </div>
+            <button id="saveSettingsBtnTop" class="primary" style="width: 150px; height: 44px; font-size: 16px; padding: 0 15px; margin-left: auto;">СОХРАНИТЬ</button>
+        </div>
+    </div>
+</div>
+
+<!-- Модальное окно списка событий сотрудника -->
+<div id="employeeEventsModal" class="modal">
+    <div class="modal-content">
+        <span style="float:right; font-size:30px; cursor:pointer;" id="closeEmployeeEventsModal">×</span>
+        <h2 id="employeeEventsTitle">📋 События сотрудника</h2>
+        <div id="employeeEventsList" class="employee-events-list"></div>
+        <div style="display:flex; justify-content:flex-end;">
+            <button id="closeEmployeeEventsBtn">Закрыть</button>
+        </div>
+    </div>
+</div>
+
+<script>
+// ========== ОСНОВНОЙ КОД ПРИЛОЖЕНИЯ ==========
+(function() {
+    console.log('🚀 Основной скрипт запущен');
+    
+    // Индикатор загрузки
+    const loadingIndicator = document.getElementById('loadingIndicator');
+    
+    function showLoading() {
+        if (loadingIndicator) loadingIndicator.classList.add('active');
+    }
+    
+    function hideLoading() {
+        if (loadingIndicator) loadingIndicator.classList.remove('active');
+    }
+
+    // ========== НАСТРОЙКИ GITHUB ==========
+    const GITHUB_OWNER = 'RusLanMkv';  // Ваш логин
+    const GITHUB_REPO = 'pnr-schedule';  // Название репозитория
+    const GITHUB_BRANCH = 'main';  // Ветка
+
+    // Загружаем сохраненный токен
+    let githubToken = localStorage.getItem('github_token') || '';
+    
+    // Данные
+    let currentYear = 2026;
+    let holidays = [];
+    let employeeList = [];
+    let statuses = [];
+    let shortDays = [];
+    let events = [];
+    let cellData = {};
+    let nextEventId = 1;
+    let employeePasswords = {};
+    
+    // История изменений
+    let changeHistory = [];
+    let nextHistoryId = 1;
+
+    let currentLoggedInEmployee = sessionStorage.getItem('pnr_logged_in_user') || null;
+
+    const monthNames = ["ЯНВАРЬ","ФЕВРАЛЬ","МАРТ","АПРЕЛЬ","МАЙ","ИЮНЬ","ИЮЛЬ","АВГУСТ","СЕНТЯБРЬ","ОКТЯБРЬ","НОЯБРЬ","ДЕКАБРЬ"];
+    const weekdays = ["Вс","Пн","Вт","Ср","Чт","Пт","Сб"];
+
+    let currentStartMonth = 0;
+    let currentEndMonth = 2;
+
+    // ========== ФУНКЦИИ ДЛЯ РАБОТЫ С ДАТАМИ ==========
+    function getMonthDays(year) {
+        return [31, (year % 4 === 0 && (year % 100 !== 0 || year % 400 === 0)) ? 29 : 28, 31, 30, 31, 30, 31, 31, 30, 31, 30, 31];
+    }
+    
+    function getDayOffset(month, day, year = currentYear) {
+        let monthDays = getMonthDays(year);
+        let off = 0;
+        for (let m = 0; m < month; m++) off += monthDays[m];
+        return off + (day - 1);
+    }
+    
+    function getMonthDayFromOffset(off, year = currentYear) {
+        let monthDays = getMonthDays(year);
+        let m = 0;
+        while (off >= monthDays[m] && m < 11) { off -= monthDays[m]; m++; }
+        return { month: m, day: off + 1 };
+    }
+    
+    function getOffsetFromDate(date) {
+        let year = date.getFullYear();
+        let month = date.getMonth();
+        let day = date.getDate();
+        return getDayOffset(month, day, year);
+    }
+    
+    function getDateFromOffset(offset) {
+        let { month, day } = getMonthDayFromOffset(offset, currentYear);
+        return new Date(currentYear, month, day, 12, 0, 0);
+    }
+
+    function calculateBrightness(color) {
+        let r = parseInt(color.substring(1,3), 16),
+            g = parseInt(color.substring(3,5), 16),
+            b = parseInt(color.substring(5,7), 16);
+        return ((r*299)+(g*587)+(b*114))/1000;
+    }
+
+    // ========== ФУНКЦИИ ДЛЯ РАБОТЫ С GITHUB ==========
+    
+    function saveGitHubToken() {
+        const tokenInput = document.getElementById('githubToken');
+        if (tokenInput) {
+            const token = tokenInput.value.trim();
+            if (token) {
+                githubToken = token;
+                localStorage.setItem('github_token', token);
+                console.log('✅ Токен сохранен в localStorage');
+                showNotification('Токен сохранен в браузере', 'success');
+            } else {
+                githubToken = '';
+                localStorage.removeItem('github_token');
+                console.log('Токен удален');
+            }
+        }
+    }
+
+    async function getFileSHA(path, retries = 3) {
+        if (!githubToken) {
+            throw new Error('GitHub токен не указан');
+        }
+
+        for (let i = 0; i < retries; i++) {
+            try {
+                const url = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${path}?ref=${GITHUB_BRANCH}`;
+                
+                const response = await fetch(url, {
+                    headers: {
+                        'Authorization': `token ${githubToken}`,
+                        'Accept': 'application/vnd.github.v3+json'
+                    }
+                });
+
+                if (response.status === 404) {
+                    return null;
+                }
+
+                if (!response.ok) {
+                    throw new Error(`Ошибка получения SHA: ${response.status}`);
+                }
+
+                const data = await response.json();
+                return data.sha;
+            } catch (error) {
+                console.log(`Попытка ${i + 1} получения SHA не удалась:`, error.message);
+                if (i === retries - 1) throw error;
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+        }
+    }
+
+    async function saveFileToGitHub(path, content, message) {
+        if (!githubToken) {
+            showNotification('Введите GitHub токен в настройках', 'error');
+            return false;
+        }
+
+        showLoading();
+        let retryCount = 0;
+        const maxRetries = 3;
+        
+        while (retryCount < maxRetries) {
+            try {
+                const contentBase64 = btoa(unescape(encodeURIComponent(content)));
+                
+                let sha = null;
+                try {
+                    sha = await getFileSHA(path);
+                    console.log(`SHA для ${path}:`, sha);
+                } catch (e) {
+                    console.log(`Ошибка получения SHA для ${path}:`, e.message);
+                }
+
+                const url = `https://api.github.com/repos/${GITHUB_OWNER}/${GITHUB_REPO}/contents/${path}`;
+                
+                const body = {
+                    message: message,
+                    content: contentBase64,
+                    branch: GITHUB_BRANCH
+                };
+
+                if (sha) {
+                    body.sha = sha;
+                }
+
+                console.log(`Попытка ${retryCount + 1} сохранения ${path}:`, { sha: sha || 'новый файл' });
+
+                const response = await fetch(url, {
+                    method: 'PUT',
+                    headers: {
+                        'Authorization': `token ${githubToken}`,
+                        'Accept': 'application/vnd.github.v3+json',
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(body)
+                });
+
+                if (response.status === 409) {
+                    console.log(`Конфликт при сохранении ${path}, повтор через 1с...`);
+                    retryCount++;
+                    if (retryCount < maxRetries) {
+                        await new Promise(resolve => setTimeout(resolve, 1000));
+                        continue;
+                    }
+                }
+
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.message || 'Ошибка сохранения');
+                }
+
+                showNotification(`✅ ${path} сохранен на GitHub`);
+                return true;
+
+            } catch (error) {
+                console.error(`Ошибка сохранения ${path}:`, error);
+                retryCount++;
+                if (retryCount >= maxRetries) {
+                    showNotification(`Ошибка: ${error.message}`, 'error');
+                    return false;
+                }
+                await new Promise(resolve => setTimeout(resolve, 1000));
+            }
+        }
+        
+        hideLoading();
+        return false;
+    }
+
+    async function saveConfig() {
+        const config = {
+            employeeList,
+            statuses,
+            holidays,
+            shortDays,
+            employeePasswords,
+            currentYear
+        };
+        
+        const configJson = JSON.stringify(config, null, 2);
+        return await saveFileToGitHub(
+            'config.json',
+            configJson,
+            `Обновление настроек от ${new Date().toLocaleString()}`
+        );
+    }
+
+    async function saveEvents() {
+        const eventsData = {
+            events,
+            cellData,
+            nextEventId,
+            changeHistory
+        };
+        
+        const eventsJson = JSON.stringify(eventsData, null, 2);
+        return await saveFileToGitHub(
+            'events.json',
+            eventsJson,
+            `Обновление событий от ${new Date().toLocaleString()}`
+        );
+    }
+
+    // ========== ЗАГРУЗКА ДАННЫХ ==========
+    async function loadConfig() {
+        try {
+            const response = await fetch('config.json?_=' + Date.now());
+            if (!response.ok) throw new Error('Ошибка загрузки config.json');
+            const config = await response.json();
+            
+            employeeList = config.employeeList || [];
+            statuses = config.statuses || [];
+            holidays = config.holidays || [];
+            shortDays = config.shortDays || [];
+            employeePasswords = config.employeePasswords || {};
+            currentYear = config.currentYear || 2026;
+            
+            document.getElementById('currentYearLabel').innerText = currentYear;
+            
+            return true;
+        } catch (error) {
+            console.error('Ошибка загрузки config.json:', error);
+            return false;
+        }
+    }
+
+    async function loadEvents() {
+        try {
+            const response = await fetch('events.json?_=' + Date.now());
+            if (!response.ok) throw new Error('Ошибка загрузки events.json');
+            const eventsData = await response.json();
+            
+            events = eventsData.events || [];
+            cellData = eventsData.cellData || {};
+            nextEventId = eventsData.nextEventId || 1;
+            changeHistory = eventsData.changeHistory || [];
+            nextHistoryId = changeHistory.length > 0 ? Math.max(...changeHistory.map(h => h.id)) + 1 : 1;
+            
+            return true;
+        } catch (error) {
+            console.error('Ошибка загрузки events.json:', error);
+            return false;
+        }
+    }
+
+    // ========== ФУНКЦИИ ДЛЯ РАБОТЫ С СОБЫТИЯМИ ==========
+    function addHistoryEntry(action, eventId, user, details) {
+        changeHistory.push({
+            id: nextHistoryId++,
+            action,
+            eventId,
+            user,
+            timestamp: new Date().toISOString(),
+            details
+        });
+    }
+
+    function createEvent(employeeIndices, startOff, endOff, statusName, comment, fact, d1 = 0, d2 = 0) {
+        const eventId = nextEventId++;
+        const event = { 
+            id: eventId, 
+            employeeIndices: employeeIndices.slice(), 
+            startOffset: startOff, 
+            endOffset: endOff, 
+            statusName, 
+            comment, 
+            fact,
+            d1,
+            d2,
+            createdBy: currentLoggedInEmployee,
+            createdAt: new Date().toISOString(),
+            updatedBy: null,
+            updatedAt: null
+        };
+        events.push(event);
+        
+        for (let empIdx of employeeIndices) {
+            for (let d = startOff; d <= endOff; d++) { 
+                cellData[`${empIdx}_${d}`] = eventId; 
+            }
+        }
+        
+        const employeeNames = employeeIndices.map(idx => employeeList[idx]?.name).join(', ');
+        addHistoryEntry('create', eventId, currentLoggedInEmployee, 
+            `Создано событие: ${statusName} для ${employeeNames}`);
+        
+        saveEvents();
+        return eventId;
+    }
+
+    function deleteEvent(eventId) {
+        const event = events.find(e => e.id === eventId);
+        if (!event) return;
+        
+        event.employeeIndices.forEach(empIdx => {
+            for (let d = event.startOffset; d <= event.endOffset; d++) {
+                delete cellData[`${empIdx}_${d}`];
+            }
+        });
+        
+        events = events.filter(e => e.id !== eventId);
+        
+        const employeeNames = event.employeeIndices.map(idx => employeeList[idx]?.name).join(', ');
+        addHistoryEntry('delete', eventId, currentLoggedInEmployee, 
+            `Удалено событие: ${event.statusName} для ${employeeNames}`);
+        
+        saveEvents();
+    }
+
+    function updateEvent(eventId, newEmployeeIndices, newStartOff, newEndOff, newStatusName, newComment, newFact, newD1 = 0, newD2 = 0) {
+        const oldEvent = events.find(e => e.id === eventId);
+        if (!oldEvent) return;
+        
+        oldEvent.employeeIndices.forEach(empIdx => {
+            for (let d = oldEvent.startOffset; d <= oldEvent.endOffset; d++) {
+                delete cellData[`${empIdx}_${d}`];
+            }
+        });
+        
+        const updatedEvent = { 
+            ...oldEvent,
+            employeeIndices: newEmployeeIndices.slice(), 
+            startOffset: newStartOff, 
+            endOffset: newEndOff, 
+            statusName: newStatusName, 
+            comment: newComment, 
+            fact: newFact,
+            d1: newD1,
+            d2: newD2,
+            updatedBy: currentLoggedInEmployee,
+            updatedAt: new Date().toISOString()
+        };
+        
+        events = events.map(e => e.id === eventId ? updatedEvent : e);
+        
+        newEmployeeIndices.forEach(empIdx => {
+            for (let d = newStartOff; d <= newEndOff; d++) {
+                cellData[`${empIdx}_${d}`] = eventId;
+            }
+        });
+        
+        const employeeNames = newEmployeeIndices.map(idx => employeeList[idx]?.name).join(', ');
+        addHistoryEntry('update', eventId, currentLoggedInEmployee, 
+            `Обновлено событие: ${newStatusName} для ${employeeNames}`);
+        
+        saveEvents();
+    }
+
+    // ========== ФУНКЦИИ ОТОБРАЖЕНИЯ ==========
+    function buildHeader() {
+        let start = currentStartMonth, end = currentEndMonth;
+        let monthDays = getMonthDays(currentYear);
+        
+        let monthRow = '<tr class="table-header-row-month"><th rowspan="3">Сотрудник</th>';
+        for (let m = start; m <= end; m++) {
+            monthRow += `<th colspan="${monthDays[m]}" class="month-header">${monthNames[m]}</th>`;
+        }
+        monthRow += '</tr>';
+        
+        let weekdayRow = '<tr class="table-header-weekdays">';
+        for (let m = start; m <= end; m++) {
+            for (let d = 1; d <= monthDays[m]; d++) {
+                let date = new Date(currentYear, m, d);
+                let wd = weekdays[date.getDay()];
+                let off = getDayOffset(m, d, currentYear);
+                let isHol = holidays.some(h => h.dateOffset === off);
+                let isWk = [0,6].includes(date.getDay());
+                let patternClass = '';
+                if (isHol) patternClass = 'holiday-pattern';
+                else if (isWk) patternClass = 'weekend-pattern';
+                weekdayRow += `<th class="${patternClass}" title="${monthNames[m]} ${d}">${wd}</th>`;
+            }
+        }
+        weekdayRow += '</tr>';
+        
+        let dayRow = '<tr class="table-header-days">';
+        for (let m = start; m <= end; m++) {
+            for (let d = 1; d <= monthDays[m]; d++) {
+                let off = getDayOffset(m, d, currentYear);
+                let isHol = holidays.some(h => h.dateOffset === off);
+                let date = new Date(currentYear, m, d);
+                let isWk = [0,6].includes(date.getDay());
+                let patternClass = '';
+                let textClass = '';
+                if (isHol) {
+                    patternClass = 'holiday-pattern';
+                    textClass = 'holiday-text';
+                } else if (isWk) {
+                    patternClass = 'weekend-pattern';
+                    textClass = 'weekend-text';
+                }
+                let shortClass = shortDays.includes(off) ? 'shortday' : '';
+                dayRow += `<th class="${patternClass} ${shortClass} ${textClass}">${d}</th>`;
+            }
+        }
+        dayRow += '</tr>';
+        
+        const header = document.getElementById('tableHeader');
+        if (header) header.innerHTML = monthRow + weekdayRow + dayRow;
+    }
+
+    function isWeekend(off) {
+        let { month, day } = getMonthDayFromOffset(off, currentYear);
+        return [0,6].includes(new Date(currentYear, month, day).getDay());
+    }
+    
+    function getHoliday(off) { return holidays.find(h => h.dateOffset === off); }
+
+    function getTitleRank(title) {
+        const rankMap = {
+            'Рук.ПНР': 1,
+            'Рук.ПО': 2,
+            'Рук.РП': 3,
+            'Рук.ИР': 4,
+            'Рук.АД': 5,
+            'Вед.инж': 6,
+            'Вед.Инж.эл': 7,
+            'Ст.инж': 8,
+            'Ст.Инж.эл': 9,
+            'инж': 10,
+            'Инж.эл': 11,
+            'РП': 12,
+            'Спец.ИР': 13,
+            'Админ': 14,
+            'Аналитик': 15,
+            'БА': 16
+        };
+        const normalizedTitle = title.replace(/\s+/g, '');
+        return rankMap[normalizedTitle] || rankMap[title] || 999;
+    }
+
+    function renderSchedule() {
+        buildHeader();
+        let start = currentStartMonth, end = currentEndMonth;
+        let monthDays = getMonthDays(currentYear);
+        let firstOff = getDayOffset(start, 1, currentYear);
+        let lastOff = getDayOffset(end, monthDays[end], currentYear);
+        let totalDays = lastOff - firstOff + 1;
+
+        let groups = {};
+        employeeList.forEach((emp, idx) => { 
+            if (!groups[emp.group]) groups[emp.group] = []; 
+            groups[emp.group].push({ idx, ...emp }); 
+        });
+        
+        Object.keys(groups).forEach(group => {
+            groups[group].sort((a, b) => getTitleRank(a.title) - getTitleRank(b.title));
+        });
+        
+        const groupOrder = ['ПО','ПНР','РП','ИР','АД','БА'].filter(g => groups[g]);
+        let tbody = document.getElementById('scheduleBody');
+        if (!tbody) return;
+        
+        let html = '';
+
+        groupOrder.forEach(g => {
+            if (groups[g]?.length) {
+                html += `<tr class="group-row"><td colspan="${totalDays+1}" style="background:#dbe6f5;">👥   ${g}</td></tr>`;
+                groups[g].forEach(emp => {
+                    html += '<tr>';
+                    html += `<td class="employee-col" data-empidx="${emp.idx}">${emp.name}<br><span>${emp.title}</span></td>`;
+
+                    for (let d = 0; d < totalDays; d++) {
+                        let globalDay = firstOff + d;
+                        let key = `${emp.idx}_${globalDay}`;
+                        let eventId = cellData[key];
+                        let holiday = getHoliday(globalDay);
+                        let patternClass = isWeekend(globalDay) ? 'weekend-pattern' : '';
+                        if (holiday) patternClass = 'holiday-pattern';
+                        let shortClass = shortDays.includes(globalDay) ? 'shortday' : '';
+
+                        if (eventId) {
+                            let event = events.find(e => e.id === eventId);
+                            if (event) {
+                                let prevKey = `${emp.idx}_${globalDay - 1}`;
+                                let isStart = cellData[prevKey] !== eventId;
+                                
+                                if (isStart) {
+                                    let mainStart = event.startOffset + (event.d1 || 0);
+                                    let mainEnd = event.endOffset - (event.d2 || 0);
+                                    
+                                    let bgColspan = event.endOffset - globalDay + 1;
+                                    
+                                    html += `<td class="event-cell" colspan="${bgColspan}" data-emp="${emp.idx}" data-start="${globalDay}" data-eventid="${eventId}">`;
+                                    
+                                    if (event.d1 > 0 || event.d2 > 0) {
+                                        let bgBorderColor = event.fact ? '#ffb74a' : '#ff0000';
+                                        html += `<div class="event-background" style="border-color: ${bgBorderColor};"></div>`;
+                                    }
+                                    
+                                    let mainOffset = mainStart - globalDay;
+                                    let mainColspan = mainEnd - mainStart + 1;
+                                    
+                                    if (mainColspan > 0 && mainStart <= mainEnd) {
+                                        let bgColor = statuses.find(s => s.name === event.statusName)?.color || '#e0e8f5';
+                                        let badgeText = event.comment || event.statusName;
+                                        let borderColor = event.fact ? bgColor : '#ff0000';
+                                        let brightness = calculateBrightness(bgColor);
+                                        let textColor = event.fact ? (brightness > 128 ? 'black' : 'white') : '#ff0000';
+                                        
+                                        let leftPercent = (mainOffset * 100) / bgColspan;
+                                        let widthPercent = (mainColspan * 100) / bgColspan;
+                                        
+                                        html += `<div class="event-badge" style="--event-color:${bgColor}; border-color:${borderColor}; background-color:${bgColor}; color:${textColor}; left: ${leftPercent}%; width: ${widthPercent}%;" title="${event.comment || event.statusName}">${badgeText}</div>`;
+                                    }
+                                    
+                                    html += `</td>`;
+                                    d += bgColspan - 1;
+                                }
+                            } else { 
+                                delete cellData[key]; 
+                                html += `<td class="${patternClass} ${shortClass}" data-emp="${emp.idx}" data-day="${globalDay}"></td>`; 
+                            }
+                        } else { 
+                            html += `<td class="${patternClass} ${shortClass}" data-emp="${emp.idx}" data-day="${globalDay}"></td>`; 
+                        }
+                    }
+                    html += '</tr>';
+                });
+            }
+        });
+        tbody.innerHTML = html;
+        
+        const legendPanel = document.getElementById('legendPanel');
+        if (legendPanel) {
+            legendPanel.innerHTML = statuses.map(s =>
+                `<div class="legend-item"><span class="color-dot" style="background:${s.color};"></span> ${s.name}</div>`
+            ).join('');
+        }
+    }
+
+    // ========== ФУНКЦИИ ДЛЯ НАСТРОЕК ==========
+    function openSettingsModal() {
+        console.log('🔧 Открываем настройки');
+        
+        renderSettingsEmployees();
+        renderSettingsStatuses();
+        renderHolidays();
+        renderShortdays();
+        
+        const yearField = document.getElementById('yearField');
+        if (yearField) yearField.value = currentYear;
+        
+        const parolField = document.getElementById('parol');
+        if (parolField && currentLoggedInEmployee) {
+            parolField.value = employeePasswords[currentLoggedInEmployee] || '';
+        }
+        
+        const tokenInput = document.getElementById('githubToken');
+        if (tokenInput) tokenInput.value = githubToken;
+        
+        const modal = document.getElementById('settingsModal');
+        if (modal) {
+            modal.classList.add('active');
+            console.log('✅ Модальное окно настроек открыто');
+        } else {
+            console.error('❌ Модальное окно settingsModal не найдено');
+        }
+    }
+
+    function renderSettingsEmployees() {
+        const container = document.getElementById('employeesGroupContainer');
+        if (!container) return;
+        
+        const groups = ['ПО','ПНР','РП','ИР','АД','БА'];
+        const titles = ['Рук.ПО','Вед.инж','Ст.инж','инж','Рук.ПНР','Вед.Инж.эл','Ст.Инж.эл','Инж.эл','Рук.РП','РП','Рук.ИР','Спец.ИР','Админ','Рук.АД','Аналитик','БА'];
+        
+        container.innerHTML = employeeList.map((e, i) => `
+            <div>
+                <span>${e.name}</span>
+                <select data-idx="${i}" class="emp-group">${groups.map(g => `<option ${e.group === g ? 'selected' : ''}>${g}</option>`).join('')}</select>
+                <select data-idx="${i}" class="emp-title">${titles.map(t => `<option ${e.title === t ? 'selected' : ''}>${t}</option>`).join('')}</select>
+                <input type="checkbox" data-idx="${i}" class="emp-active" ${e.isActive ? 'checked' : ''}>
+                <button data-idx="${i}" class="remove-emp">🗑️</button>
+            </div>`).join('');
+            
+        document.querySelectorAll('.emp-group').forEach(s => s.addEventListener('change', function(){ 
+            employeeList[this.dataset.idx].group = this.value; 
+            renderSchedule(); 
+            saveConfig();
+        }));
+        
+        document.querySelectorAll('.emp-title').forEach(s => s.addEventListener('change', function(){ 
+            employeeList[this.dataset.idx].title = this.value; 
+            renderSchedule(); 
+            saveConfig();
+        }));
+        
+        document.querySelectorAll('.remove-emp').forEach(b => b.addEventListener('click', function(e){ 
+            employeeList.splice(e.target.dataset.idx,1); 
+            renderSchedule(); 
+            renderSettingsEmployees(); 
+            renderLoginEmployeeList('');
+            saveConfig();
+        }));
+        
+        document.querySelectorAll('.emp-active').forEach(cb => cb.addEventListener('change', function(){ 
+            employeeList[this.dataset.idx].isActive = this.checked; 
+            renderSchedule(); 
+            renderLoginEmployeeList('');
+            saveConfig();
+        }));
+    }
+    
+    function renderSettingsStatuses() {
+        const container = document.getElementById('statusesList');
+        if (!container) return;
+        
+        container.innerHTML = statuses.map((s,i) => `<div>
+            <span style="display:inline-block; width:16px; height:16px; background:${s.color};"></span> ${s.name}
+            <input type="color" value="${s.color}" data-idx="${i}" class="status-color-picker" style="width:40px;">
+            <button data-idx="${i}" class="remove-status">✖</button>
+        </div>`).join('');
+            
+        document.querySelectorAll('.status-color-picker').forEach(p => p.addEventListener('change', function(e){ 
+            statuses[e.target.dataset.idx].color = e.target.value; 
+            renderSchedule(); 
+            renderSettingsStatuses(); 
+            saveConfig();
+        }));
+        
+        document.querySelectorAll('.remove-status').forEach(b => b.addEventListener('click', function(e){ 
+            let idx = e.target.dataset.idx;
+            if (statuses.length > 1) { 
+                let removed = statuses[idx].name;
+                statuses.splice(idx,1);
+                events = events.filter(ev => { 
+                    if (ev.statusName === removed) { 
+                        ev.employeeIndices.forEach(ei => { 
+                            for(let d = ev.startOffset; d <= ev.endOffset; d++) delete cellData[`${ei}_${d}`]; 
+                        }); 
+                        return false; 
+                    } 
+                    return true; 
+                });
+                renderSchedule(); 
+                renderSettingsStatuses(); 
+                saveConfig();
+                saveEvents();
+            }
+        }));
+    }
+    
+    function renderHolidays() {
+        const container = document.getElementById('holidaysList');
+        if (!container) return;
+        
+        container.innerHTML = holidays.map((h,i) => { 
+            let {month,day} = getMonthDayFromOffset(h.dateOffset); 
+            return `<div class="holiday-item"><span>${monthNames[month]} ${day}</span> <button data-idx="${i}" class="remove-holiday">✖</button></div>`; 
+        }).join('');
+        
+        document.querySelectorAll('.remove-holiday').forEach(b => b.addEventListener('click', function(e){ 
+            holidays.splice(e.target.dataset.idx,1); 
+            renderSchedule(); 
+            renderHolidays(); 
+            saveConfig();
+        }));
+    }
+    
+    function renderShortdays() {
+        const container = document.getElementById('shortdaysList');
+        if (!container) return;
+        
+        container.innerHTML = shortDays.map((off,i) => { 
+            let {month,day} = getMonthDayFromOffset(off); 
+            return `<div class="shortday-item"><span>${monthNames[month]} ${day}</span> <button data-idx="${i}" class="remove-shortday">✖</button></div>`; 
+        }).join('');
+        
+        document.querySelectorAll('.remove-shortday').forEach(b => b.addEventListener('click', function(e){ 
+            shortDays.splice(e.target.dataset.idx,1); 
+            renderSchedule(); 
+            renderShortdays(); 
+            saveConfig();
+        }));
+    }
+
+    // ========== ФУНКЦИИ ДЛЯ АВТОРИЗАЦИИ ==========
+    function updateUserDisplay() {
+        const userInfoDiv = document.getElementById('userInfoDisplay');
+        const userNameSpan = document.getElementById('currentUserName');
+        const settingsUserSpan = document.getElementById('settingsUserInfo');
+        
+        if (currentLoggedInEmployee) {
+            if (userInfoDiv) userInfoDiv.style.display = 'flex';
+            if (userNameSpan) userNameSpan.textContent = currentLoggedInEmployee;
+            if (settingsUserSpan) {
+                settingsUserSpan.textContent = currentLoggedInEmployee;
+                settingsUserSpan.style.display = 'inline-block';
+            }
+        } else {
+            if (userInfoDiv) userInfoDiv.style.display = 'none';
+            if (settingsUserSpan) settingsUserSpan.style.display = 'none';
+        }
+    }
+
+    let selectedLoginEmployee = null;
+
+    function renderLoginEmployeeList(filter = '') {
+        const container = document.getElementById('loginEmployeeList');
+        if (!container) return;
+        
+        const f = filter.toLowerCase();
+        
+        let html = '';
+        let hasActive = false;
+        
+        employeeList.forEach((emp, index) => {
+            if (emp.isActive && (f === '' || emp.name.toLowerCase().includes(f))) {
+                hasActive = true;
+                html += `<div class="employee-checkbox-item" style="padding: 8px; cursor: pointer;" onclick="window.selectLoginEmployee(${index})">
+                    <label style="cursor: pointer;">${emp.name} (${emp.group})</label>
+                </div>`;
+            }
+        });
+        
+        if (!hasActive && f !== '') {
+            html = '<div style="padding: 10px; text-align: center; color: #999;">Нет активных сотрудников</div>';
+        } else if (!hasActive) {
+            html = '<div style="padding: 10px; text-align: center; color: #999;">Нет активных сотрудников</div>';
+        }
+        
+        container.innerHTML = html;
+        container.style.display = html ? 'block' : 'none';
+        
+        const selectedContainer = document.getElementById('loginSelectedEmployee');
+        if (selectedLoginEmployee !== null) {
+            const emp = employeeList[selectedLoginEmployee];
+            if (emp && selectedContainer) {
+                selectedContainer.innerHTML = `<span class="selected-employee-tag" style="padding: 5px 10px;">${emp.name} (${emp.group}) <button onclick="window.clearLoginEmployee()" style="background: none; border: none; color: white; font-size: 16px;">✕</button></span>`;
+            }
+        } else if (selectedContainer) {
+            selectedContainer.innerHTML = '';
+        }
+    }
+
+    window.selectLoginEmployee = function(index) {
+        selectedLoginEmployee = index;
+        const emp = employeeList[index];
+        if (emp) {
+            const searchInput = document.getElementById('loginEmployeeSearch');
+            if (searchInput) searchInput.value = emp.name;
+            
+            const list = document.getElementById('loginEmployeeList');
+            if (list) list.style.display = 'none';
+            
+            renderLoginEmployeeList('');
+            checkLoginButtons();
+        }
+    };
+
+    window.clearLoginEmployee = function() {
+        selectedLoginEmployee = null;
+        const searchInput = document.getElementById('loginEmployeeSearch');
+        if (searchInput) searchInput.value = '';
+        
+        const selectedContainer = document.getElementById('loginSelectedEmployee');
+        if (selectedContainer) selectedContainer.innerHTML = '';
+        
+        renderLoginEmployeeList('');
+        checkLoginButtons();
+    };
+
+    function checkLoginButtons() {
+        const passwordInput = document.getElementById('loginPassword');
+        const registerBtn = document.getElementById('loginRegisterBtn');
+        const okBtn = document.getElementById('loginOkBtn');
+        const messageDiv = document.getElementById('loginMessage');
+        
+        if (!passwordInput || !registerBtn || !okBtn || !messageDiv) return;
+        
+        const password = passwordInput.value.trim();
+        
+        messageDiv.style.display = 'none';
+        
+        if (selectedLoginEmployee === null) {
+            registerBtn.disabled = true;
+            okBtn.disabled = true;
+            return;
+        }
+        
+        const emp = employeeList[selectedLoginEmployee];
+        if (!emp) {
+            registerBtn.disabled = true;
+            okBtn.disabled = true;
+            return;
+        }
+        
+        const selectedName = emp.name;
+        const hasPassword = employeePasswords.hasOwnProperty(selectedName);
+        
+        if (hasPassword) {
+            registerBtn.disabled = true;
+            okBtn.disabled = (password !== employeePasswords[selectedName]);
+            if (okBtn.disabled && password.length > 0) {
+                messageDiv.style.display = 'block';
+                messageDiv.innerHTML = '❌ Неверный пароль';
+            }
+        } else {
+            registerBtn.disabled = (password.length === 0);
+            okBtn.disabled = true;
+        }
+    }
+
+    function openLoginModal(callback) {
+        selectedLoginEmployee = null;
+        
+        const searchInput = document.getElementById('loginEmployeeSearch');
+        if (searchInput) searchInput.value = '';
+        
+        const selectedContainer = document.getElementById('loginSelectedEmployee');
+        if (selectedContainer) selectedContainer.innerHTML = '';
+        
+        const passwordInput = document.getElementById('loginPassword');
+        if (passwordInput) passwordInput.value = '';
+        
+        const messageDiv = document.getElementById('loginMessage');
+        if (messageDiv) messageDiv.style.display = 'none';
+        
+        const registerBtn = document.getElementById('loginRegisterBtn');
+        const okBtn = document.getElementById('loginOkBtn');
+        if (registerBtn) registerBtn.disabled = true;
+        if (okBtn) okBtn.disabled = true;
+        
+        renderLoginEmployeeList('');
+        
+        const modal = document.getElementById('loginModal');
+        if (modal) modal.classList.add('active');
+        
+        window.loginCallback = callback;
+    }
+
+    // ========== ФУНКЦИИ ДЛЯ СОБЫТИЙ ==========
+    let currentSelectedEmployees = [];
+    let currentEditEventId = null;
+    let hasConflicts = false;
+    let isViewOnlyMode = false;
+
+    function resetEventEditorState() {
+        currentEditEventId = null;
+        currentSelectedEmployees = [];
+        hasConflicts = false;
+        isViewOnlyMode = false;
+    }
+
+    function renderEmployeeCheckboxes(filter = '', disableAll = false) {
+        const container = document.getElementById('employeeCheckboxList');
+        if (!container) return;
+        
+        let f = filter.toLowerCase();
+        let html = '';
+        employeeList.forEach((emp, idx) => {
+            if (f === '' || emp.name.toLowerCase().includes(f)) {
+                html += `<div class="employee-checkbox-item">
+                    <input type="checkbox" id="emp_${idx}" ${currentSelectedEmployees.includes(idx) ? 'checked' : ''} ${disableAll ? 'disabled' : ''}>
+                    <label for="emp_${idx}">${emp.name} (${emp.group})</label>
+                </div>`;
+            }
+        });
+        container.innerHTML = html;
+    }
+
+    function updateSelectedEmployeesDisplay(disableAll = false) {
+        const container = document.getElementById('selectedEmployeesContainer');
+        if (!container) return;
+        
+        if (currentSelectedEmployees.length === 0) { 
+            container.innerHTML = '<span style="color:#7f8fa4;">Никто не выбран</span>'; 
+            return; 
+        }
+        let html = '';
+        currentSelectedEmployees.forEach(idx => {
+            let emp = employeeList[idx];
+            html += `<span class="selected-employee-tag">${emp.name} (${emp.group}) ${!disableAll ? `<button onclick="removeSelectedEmployee(${idx})" title="Удалить">✕</button>` : ''}</span>`;
+        });
+        container.innerHTML = html;
+    }
+    
+    window.removeSelectedEmployee = function(idx) { 
+        if (isViewOnlyMode) return;
+        currentSelectedEmployees = currentSelectedEmployees.filter(i => i !== idx); 
+        updateSelectedEmployeesDisplay(); 
+        checkForConflicts();
+        
+        let checkbox = document.getElementById(`emp_${idx}`);
+        if (checkbox) checkbox.checked = false;
+    };
+
+    function checkForConflicts() {
+        if (isViewOnlyMode) return;
+        
+        const conflictWarning = document.getElementById('conflictWarning');
+        const errorMessage = document.getElementById('errorMessage');
+        const saveBtn = document.getElementById('saveEventBtn');
+        
+        if (conflictWarning) conflictWarning.style.display = 'none';
+        if (errorMessage) errorMessage.style.display = 'none';
+        
+        if (currentSelectedEmployees.length === 0) {
+            if (saveBtn) saveBtn.disabled = true;
+            return;
+        }
+        
+        const startStr = document.getElementById('eventDateStart')?.value;
+        const endStr = document.getElementById('eventDateEnd')?.value;
+        
+        if (!startStr || !endStr) {
+            if (saveBtn) saveBtn.disabled = true;
+            return;
+        }
+        
+        let startParts = startStr.split('-').map(Number);
+        let endParts = endStr.split('-').map(Number);
+        
+        let startDate = new Date(startParts[0], startParts[1]-1, startParts[2], 12, 0, 0);
+        let endDate = new Date(endParts[0], endParts[1]-1, endParts[2], 12, 0, 0);
+        
+        if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+            if (errorMessage) {
+                errorMessage.innerHTML = '❌ Некорректная дата';
+                errorMessage.style.display = 'block';
+            }
+            if (saveBtn) saveBtn.disabled = true;
+            return;
+        }
+        
+        if (startDate > endDate) { 
+            if (errorMessage) {
+                errorMessage.innerHTML = '❌ Дата начала не может быть позже даты окончания';
+                errorMessage.style.display = 'block';
+            }
+            if (saveBtn) saveBtn.disabled = true;
+            return; 
+        }
+        
+        let startOff = getOffsetFromDate(startDate);
+        let endOff = getOffsetFromDate(endDate);
+        
+        let d1 = parseInt(document.getElementById('d1Field')?.value) || 0;
+        let d2 = parseInt(document.getElementById('d2Field')?.value) || 0;
+        let mainStart = startOff + d1;
+        let mainEnd = endOff - d2;
+        
+        if (mainStart > mainEnd) {
+            if (errorMessage) {
+                errorMessage.innerHTML = '❌ Сдвиги слишком большие (основной блок пуст)';
+                errorMessage.style.display = 'block';
+            }
+            if (saveBtn) saveBtn.disabled = true;
+            return;
+        }
+        
+        let conflicts = [];
+        let conflictSet = new Set();
+        
+        currentSelectedEmployees.forEach(empIdx => {
+            for (let d = mainStart; d <= mainEnd; d++) {
+                let key = `${empIdx}_${d}`;
+                let existingEventId = cellData[key];
+                
+                if (existingEventId && existingEventId !== currentEditEventId) {
+                    let event = events.find(e => e.id === existingEventId);
+                    if (event) {
+                        let empName = employeeList[empIdx]?.name || 'Неизвестный сотрудник';
+                        let { month, day } = getMonthDayFromOffset(d);
+                        let conflictKey = `${empIdx}_${month}_${day}`;
+                        
+                        if (!conflictSet.has(conflictKey)) {
+                            conflictSet.add(conflictKey);
+                            conflicts.push(`${empName}: ${monthNames[month]} ${day} (${event.statusName})`);
+                        }
+                    }
+                }
+            }
+        });
+        
+        if (conflicts.length > 0) {
+            if (conflictWarning) {
+                conflictWarning.style.display = 'block';
+                conflictWarning.innerHTML = '⚠️ Обнаружены пересечения:<br>' + conflicts.slice(0,5).join('<br>');
+                if (conflicts.length > 5) {
+                    conflictWarning.innerHTML += `<br>...и еще ${conflicts.length - 5}`;
+                }
+            }
+            if (saveBtn) saveBtn.disabled = true;
+            hasConflicts = true;
+        } else {
+            if (conflictWarning) conflictWarning.style.display = 'none';
+            if (saveBtn) saveBtn.disabled = false;
+            hasConflicts = false;
+        }
+    }
+
+    function openEventModalForEvent(eventId) {
+        currentEditEventId = eventId;
+        let event = events.find(e => e.id === eventId);
+        
+        isViewOnlyMode = !currentLoggedInEmployee;
+        
+        if (event) {
+            currentSelectedEmployees = [...event.employeeIndices];
+            
+            const startInput = document.getElementById('eventDateStart');
+            const endInput = document.getElementById('eventDateEnd');
+            if (startInput) startInput.value = getDateFromOffset(event.startOffset).toISOString().slice(0,10);
+            if (endInput) endInput.value = getDateFromOffset(event.endOffset).toISOString().slice(0,10);
+            
+            const d1Field = document.getElementById('d1Field');
+            const d2Field = document.getElementById('d2Field');
+            if (d1Field) d1Field.value = event.d1 !== undefined ? event.d1 : 0;
+            if (d2Field) d2Field.value = event.d2 !== undefined ? event.d2 : 0;
+            
+            const statusSelect = document.getElementById('eventStatus');
+            if (statusSelect) {
+                let statusOptions = statuses.map(s => `<option value="${s.name}" ${s.name === event.statusName ? 'selected' : ''}>${s.name}</option>`).join('');
+                statusSelect.innerHTML = statusOptions;
+            }
+            
+            const commentInput = document.getElementById('eventComment');
+            if (commentInput) commentInput.value = event.comment || '';
+            
+            const factCheckbox = document.getElementById('eventFact');
+            if (factCheckbox) factCheckbox.checked = event.fact || false;
+            
+            const title = document.getElementById('eventModalTitle');
+            if (title) title.textContent = isViewOnlyMode ? '👁️ Просмотр события' : '📌 Редактор события';
+            
+            const saveBtn = document.getElementById('saveEventBtn');
+            const deleteBtn = document.getElementById('deleteEventBtn');
+            const closeViewBtn = document.getElementById('closeViewEventBtn');
+            const infoMsg = document.getElementById('eventInfoMessage');
+            
+            if (isViewOnlyMode) {
+                if (saveBtn) saveBtn.style.display = 'none';
+                if (deleteBtn) deleteBtn.style.display = 'none';
+                if (closeViewBtn) closeViewBtn.style.display = 'block';
+                if (infoMsg) {
+                    infoMsg.style.display = 'block';
+                    infoMsg.innerHTML = '🔒 Только просмотр. Для редактирования необходимо войти в систему.';
+                }
+                
+                const inputs = ['eventDateStart', 'eventDateEnd', 'd1Field', 'd2Field', 'eventStatus', 'eventComment', 'employeeSearchInput'];
+                inputs.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.disabled = true;
+                });
+                
+                const factEl = document.getElementById('eventFact');
+                if (factEl) factEl.disabled = true;
+                
+                const modalContent = document.getElementById('eventModalContent');
+                if (modalContent) modalContent.classList.add('view-only-modal');
+            } else {
+                if (saveBtn) saveBtn.style.display = 'block';
+                if (deleteBtn) deleteBtn.style.display = 'block';
+                if (closeViewBtn) closeViewBtn.style.display = 'none';
+                if (infoMsg) infoMsg.style.display = 'none';
+                
+                const inputs = ['eventDateStart', 'eventDateEnd', 'd1Field', 'd2Field', 'eventStatus', 'eventComment', 'employeeSearchInput'];
+                inputs.forEach(id => {
+                    const el = document.getElementById(id);
+                    if (el) el.disabled = false;
+                });
+                
+                const factEl = document.getElementById('eventFact');
+                if (factEl) factEl.disabled = false;
+                
+                const modalContent = document.getElementById('eventModalContent');
+                if (modalContent) modalContent.classList.remove('view-only-modal');
+            }
+        } else {
+            if (!currentLoggedInEmployee) {
+                return;
+            }
+            
+            currentSelectedEmployees = [];
+            let d = new Date(currentYear, 0, 1, 12, 0, 0);
+            
+            const startInput = document.getElementById('eventDateStart');
+            const endInput = document.getElementById('eventDateEnd');
+            if (startInput) startInput.value = d.toISOString().slice(0,10);
+            if (endInput) endInput.value = d.toISOString().slice(0,10);
+            
+            const d1Field = document.getElementById('d1Field');
+            const d2Field = document.getElementById('d2Field');
+            if (d1Field) d1Field.value = '0';
+            if (d2Field) d2Field.value = '0';
+            
+            const statusSelect = document.getElementById('eventStatus');
+            if (statusSelect) {
+                let statusOptions = statuses.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+                statusSelect.innerHTML = statusOptions;
+            }
+            
+            const commentInput = document.getElementById('eventComment');
+            if (commentInput) commentInput.value = '';
+            
+            const factCheckbox = document.getElementById('eventFact');
+            if (factCheckbox) factCheckbox.checked = false;
+            
+            const title = document.getElementById('eventModalTitle');
+            if (title) title.textContent = '📌 Редактор события';
+            
+            isViewOnlyMode = false;
+            
+            const saveBtn = document.getElementById('saveEventBtn');
+            const deleteBtn = document.getElementById('deleteEventBtn');
+            const closeViewBtn = document.getElementById('closeViewEventBtn');
+            const infoMsg = document.getElementById('eventInfoMessage');
+            
+            if (saveBtn) saveBtn.style.display = 'block';
+            if (deleteBtn) deleteBtn.style.display = 'none';
+            if (closeViewBtn) closeViewBtn.style.display = 'none';
+            if (infoMsg) infoMsg.style.display = 'none';
+            
+            const inputs = ['eventDateStart', 'eventDateEnd', 'd1Field', 'd2Field', 'eventStatus', 'eventComment', 'employeeSearchInput'];
+            inputs.forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.disabled = false;
+            });
+            
+            const factEl = document.getElementById('eventFact');
+            if (factEl) factEl.disabled = false;
+            
+            const modalContent = document.getElementById('eventModalContent');
+            if (modalContent) modalContent.classList.remove('view-only-modal');
+        }
+        
+        renderEmployeeCheckboxes('', isViewOnlyMode);
+        updateSelectedEmployeesDisplay(isViewOnlyMode);
+        
+        const conflictWarning = document.getElementById('conflictWarning');
+        const errorMessage = document.getElementById('errorMessage');
+        if (conflictWarning) conflictWarning.style.display = 'none';
+        if (errorMessage) errorMessage.style.display = 'none';
+        
+        const modal = document.getElementById('eventModal');
+        if (modal) modal.classList.add('active');
+        
+        if (!isViewOnlyMode) {
+            setTimeout(checkForConflicts, 300);
+        }
+    }
+
+    function openEmployeeEventsModal(empIdx) {
+        const emp = employeeList[empIdx];
+        if (!emp) return;
+        
+        const title = document.getElementById('employeeEventsTitle');
+        if (title) title.textContent = `📋 События: ${emp.name}`;
+        
+        const empEvents = [];
+        events.forEach(event => {
+            if (event.employeeIndices.includes(empIdx)) {
+                empEvents.push(event);
+            }
+        });
+        
+        empEvents.sort((a, b) => a.startOffset - b.startOffset);
+        
+        const today = new Date();
+        today.setHours(12, 0, 0, 0);
+        const todayOffset = getOffsetFromDate(today);
+        
+        const currentAndFuture = empEvents.filter(e => e.endOffset >= todayOffset);
+        const past = empEvents.filter(e => e.endOffset < todayOffset);
+        
+        currentAndFuture.sort((a, b) => a.startOffset - b.startOffset);
+        past.sort((a, b) => b.startOffset - a.startOffset);
+        
+        const sortedEvents = [...currentAndFuture, ...past];
+        
+        const listContainer = document.getElementById('employeeEventsList');
+        if (!listContainer) return;
+        
+        if (sortedEvents.length === 0) {
+            listContainer.innerHTML = '<div class="no-events">Нет событий</div>';
+        } else {
+            let html = '';
+            sortedEvents.forEach(event => {
+                const startDate = getDateFromOffset(event.startOffset);
+                const endDate = getDateFromOffset(event.endOffset);
+                const status = statuses.find(s => s.name === event.statusName) || { color: '#cccccc', name: event.statusName };
+                
+                const eventEmployees = event.employeeIndices
+                    .map(idx => employeeList[idx]?.name)
+                    .filter(name => name)
+                    .join(', ');
+                
+                let periodClass = 'past';
+                if (event.startOffset <= todayOffset && event.endOffset >= todayOffset) {
+                    periodClass = 'current';
+                } else if (event.startOffset > todayOffset) {
+                    periodClass = 'future';
+                }
+                
+                const canEdit = !!currentLoggedInEmployee;
+                const viewOnlyClass = !canEdit ? 'view-only' : '';
+                
+                html += `
+                    <div class="event-item ${periodClass} ${viewOnlyClass}" data-event-id="${event.id}" style="border-left-color: ${status.color};">
+                        <div class="event-date">${startDate.toLocaleDateString('ru-RU')} - ${endDate.toLocaleDateString('ru-RU')}</div>
+                        <div class="event-status">
+                            <span class="event-indicator" style="background: ${status.color};"></span>
+                            ${status.name} ${event.fact ? '✅' : ''}
+                        </div>
+                        ${event.comment ? `<div class="event-comment">📌 ${event.comment}</div>` : ''}
+                        <div class="event-employees-list">
+                            <span>👥 Участники:</span> ${eventEmployees}
+                        </div>
+                    </div>
+                `;
+            });
+            listContainer.innerHTML = html;
+            
+            listContainer.addEventListener('click', function(e) {
+                const eventItem = e.target.closest('.event-item');
+                if (!eventItem) return;
+                
+                const eventId = parseInt(eventItem.dataset.eventId);
+                if (isNaN(eventId)) return;
+                
+                if (currentLoggedInEmployee) {
+                    openEventModalForEvent(eventId);
+                    const modal = document.getElementById('employeeEventsModal');
+                    if (modal) modal.classList.remove('active');
+                }
+            });
+        }
+        
+        const modal = document.getElementById('employeeEventsModal');
+        if (modal) modal.classList.add('active');
+    }
+
+    // ========== УВЕДОМЛЕНИЯ ==========
+    function showNotification(message, type = 'success') {
+        console.log(`📢 [${type}]: ${message}`);
+        
+        const notification = document.createElement('div');
+        notification.className = 'save-notification';
+        notification.style.background = type === 'success' ? '#4CAF50' : '#f44336';
+        notification.textContent = message;
+        document.body.appendChild(notification);
+        
+        setTimeout(() => {
+            notification.style.animation = 'slideIn 0.3s ease-out reverse';
+            setTimeout(() => {
+                document.body.removeChild(notification);
+            }, 300);
+        }, 2000);
+    }
+
+    // ========== ИНИЦИАЛИЗАЦИЯ ==========
+    function init() {
+        console.log('📄 Инициализация приложения');
+        
+        // Загружаем сохраненный токен
+        const savedToken = localStorage.getItem('github_token');
+        if (savedToken) {
+            githubToken = savedToken;
+            console.log('✅ Токен загружен из localStorage');
+        }
+        
+        // Заполняем селекты месяцев
+        const startSel = document.getElementById('startMonth');
+        const endSel = document.getElementById('endMonth');
+        
+        if (startSel && endSel) {
+            monthNames.forEach((n,i) => { 
+                startSel.innerHTML += `<option value="${i}">${n}</option>`; 
+                endSel.innerHTML += `<option value="${i}">${n}</option>`; 
+            });
+            
+            const currentDate = new Date();
+            currentStartMonth = currentDate.getMonth();
+            currentEndMonth = Math.min(11, currentStartMonth + 2);
+            startSel.value = currentStartMonth; 
+            endSel.value = currentEndMonth;
+        }
+        
+        // Кнопка настроек
+        const settingsBtn = document.getElementById('settingsBtn');
+        if (settingsBtn) {
+            settingsBtn.addEventListener('click', function(e) {
+                e.preventDefault();
+                e.stopPropagation();
+                console.log('⚙️ Клик по кнопке настроек');
+                
+                if (!currentLoggedInEmployee) {
+                    openLoginModal(function() {
+                        openSettingsModal();
+                    });
+                } else {
+                    openSettingsModal();
+                }
+            });
+            console.log('✅ Обработчик кнопки настроек установлен');
+        }
+        
+        // Кнопка добавления события
+        const addBtn = document.getElementById('addEventBtn');
+        if (addBtn) {
+            addBtn.addEventListener('click', function() {
+                if (!currentLoggedInEmployee) {
+                    openLoginModal(() => {
+                        resetEventEditorState();
+                        openEventModalForEvent(null);
+                    });
+                } else {
+                    resetEventEditorState();
+                    openEventModalForEvent(null);
+                }
+            });
+        }
+        
+        // Кнопка выхода
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', function() {
+                currentLoggedInEmployee = null;
+                sessionStorage.removeItem('pnr_logged_in_user');
+                updateUserDisplay();
+                showNotification('Вы вышли из системы', 'info');
+            });
+        }
+        
+        // Кнопка применения диапазона месяцев
+        const applyBtn = document.getElementById('applyMonthRange');
+        if (applyBtn) {
+            applyBtn.addEventListener('click', function() {
+                if (startSel && endSel) {
+                    currentStartMonth = parseInt(startSel.value);
+                    currentEndMonth = parseInt(endSel.value);
+                    if (currentStartMonth > currentEndMonth) {
+                        [currentStartMonth, currentEndMonth] = [currentEndMonth, currentStartMonth];
+                    }
+                    renderSchedule();
+                }
+            });
+        }
+        
+        // Кнопки прокрутки
+        const wrapper = document.getElementById('scheduleWrapper');
+        const scrollLeft = document.getElementById('scrollLeft');
+        const scrollRight = document.getElementById('scrollRight');
+        
+        if (scrollLeft) {
+            scrollLeft.addEventListener('click', () => {
+                if (wrapper) wrapper.scrollLeft -= 25;
+            });
+        }
+        
+        if (scrollRight) {
+            scrollRight.addEventListener('click', () => {
+                if (wrapper) wrapper.scrollLeft += 25;
+            });
+        }
+        
+        // Кнопка сохранения настроек
+        const saveSettingsBtn = document.getElementById('saveSettingsBtnTop');
+        if (saveSettingsBtn) {
+            saveSettingsBtn.addEventListener('click', async function() {
+                saveGitHubToken();
+                
+                if (currentLoggedInEmployee) {
+                    const newPassword = document.getElementById('parol')?.value.trim();
+                    if (newPassword) {
+                        employeePasswords[currentLoggedInEmployee] = newPassword;
+                    }
+                }
+                
+                let newYear = parseInt(document.getElementById('yearField')?.value);
+                if (isNaN(newYear) || newYear < 2000 || newYear > 2100) {
+                    alert("Введите корректный год (2000-2100)");
+                    return;
+                }
+
+                if (newYear !== currentYear && confirm("Смена года приведёт к сбросу событий. Продолжить?")) {
+                    currentYear = newYear;
+                    events = [];
+                    cellData = {};
+                    nextEventId = 1;
+                    changeHistory = [];
+                    nextHistoryId = 1;
+                }
+                
+                currentYear = newYear;
+                const yearLabel = document.getElementById('currentYearLabel');
+                if (yearLabel) yearLabel.innerText = currentYear;
+                
+                await saveConfig();
+                await saveEvents();
+                
+                renderSchedule();
+                
+                const modal = document.getElementById('settingsModal');
+                if (modal) modal.classList.remove('active');
+                
+                showNotification('Настройки сохранены');
+            });
+        }
+        
+        // Закрытие модальных окон
+        const closeEventModal = document.getElementById('closeEventModal');
+        if (closeEventModal) {
+            closeEventModal.addEventListener('click', () => {
+                const modal = document.getElementById('eventModal');
+                if (modal) modal.classList.remove('active');
+                resetEventEditorState();
+            });
+        }
+        
+        const closeViewEventBtn = document.getElementById('closeViewEventBtn');
+        if (closeViewEventBtn) {
+            closeViewEventBtn.addEventListener('click', () => {
+                const modal = document.getElementById('eventModal');
+                if (modal) modal.classList.remove('active');
+                resetEventEditorState();
+            });
+        }
+        
+        const closeEmployeeEventsModal = document.getElementById('closeEmployeeEventsModal');
+        if (closeEmployeeEventsModal) {
+            closeEmployeeEventsModal.addEventListener('click', () => {
+                const modal = document.getElementById('employeeEventsModal');
+                if (modal) modal.classList.remove('active');
+            });
+        }
+        
+        const closeEmployeeEventsBtn = document.getElementById('closeEmployeeEventsBtn');
+        if (closeEmployeeEventsBtn) {
+            closeEmployeeEventsBtn.addEventListener('click', () => {
+                const modal = document.getElementById('employeeEventsModal');
+                if (modal) modal.classList.remove('active');
+            });
+        }
+        
+        // Закрытие по клику вне модального окна
+        window.addEventListener('click', (e) => {
+            if (e.target.classList && e.target.classList.contains('modal')) {
+                e.target.classList.remove('active');
+                if (e.target.id === 'eventModal') {
+                    resetEventEditorState();
+                }
+            }
+        });
+        
+        // Обработчики для модального окна входа
+        const loginSearch = document.getElementById('loginEmployeeSearch');
+        if (loginSearch) {
+            loginSearch.addEventListener('input', function(e) {
+                renderLoginEmployeeList(e.target.value);
+                if (selectedLoginEmployee !== null) {
+                    const emp = employeeList[selectedLoginEmployee];
+                    if (emp && emp.name !== e.target.value) {
+                        clearLoginEmployee();
+                    }
+                }
+            });
+            
+            loginSearch.addEventListener('focus', function() {
+                if (this.value) {
+                    renderLoginEmployeeList(this.value);
+                } else {
+                    renderLoginEmployeeList('');
+                }
+            });
+        }
+        
+        document.addEventListener('click', function(e) {
+            const container = document.getElementById('loginEmployeeList');
+            const searchInput = document.getElementById('loginEmployeeSearch');
+            if (container && searchInput && !container.contains(e.target) && e.target !== searchInput) {
+                container.style.display = 'none';
+            }
+        });
+        
+        const loginPassword = document.getElementById('loginPassword');
+        if (loginPassword) {
+            loginPassword.addEventListener('input', checkLoginButtons);
+        }
+        
+        const loginRegisterBtn = document.getElementById('loginRegisterBtn');
+        if (loginRegisterBtn) {
+            loginRegisterBtn.addEventListener('click', function() {
+                if (selectedLoginEmployee === null) return;
+                
+                const emp = employeeList[selectedLoginEmployee];
+                if (!emp) return;
+                
+                const password = document.getElementById('loginPassword')?.value.trim();
+                if (!password) return;
+                
+                const selectedName = emp.name;
+                
+                employeePasswords[selectedName] = password;
+                currentLoggedInEmployee = selectedName;
+                sessionStorage.setItem('pnr_logged_in_user', selectedName);
+                
+                const modal = document.getElementById('loginModal');
+                if (modal) modal.classList.remove('active');
+                
+                updateUserDisplay();
+                saveConfig();
+                
+                if (window.loginCallback) {
+                    window.loginCallback();
+                    window.loginCallback = null;
+                }
+                
+                showNotification('Регистрация выполнена успешно');
+            });
+        }
+        
+        const loginOkBtn = document.getElementById('loginOkBtn');
+        if (loginOkBtn) {
+            loginOkBtn.addEventListener('click', function() {
+                if (selectedLoginEmployee === null) return;
+                
+                const emp = employeeList[selectedLoginEmployee];
+                if (!emp) return;
+                
+                const password = document.getElementById('loginPassword')?.value.trim();
+                const selectedName = emp.name;
+                
+                if (!employeePasswords.hasOwnProperty(selectedName) || employeePasswords[selectedName] !== password) return;
+                
+                currentLoggedInEmployee = selectedName;
+                sessionStorage.setItem('pnr_logged_in_user', selectedName);
+                
+                const modal = document.getElementById('loginModal');
+                if (modal) modal.classList.remove('active');
+                
+                updateUserDisplay();
+                
+                if (window.loginCallback) {
+                    window.loginCallback();
+                    window.loginCallback = null;
+                }
+                
+                showNotification('Вход выполнен успешно');
+            });
+        }
+        
+        const loginCancelBtn = document.getElementById('loginCancelBtn');
+        if (loginCancelBtn) {
+            loginCancelBtn.addEventListener('click', function() {
+                const modal = document.getElementById('loginModal');
+                if (modal) modal.classList.remove('active');
+                window.loginCallback = null;
+            });
+        }
+        
+        // Обработчики для событий
+        const eventDateStart = document.getElementById('eventDateStart');
+        const eventDateEnd = document.getElementById('eventDateEnd');
+        const d1Field = document.getElementById('d1Field');
+        const d2Field = document.getElementById('d2Field');
+        
+        if (eventDateStart) {
+            eventDateStart.addEventListener('change', checkForConflicts);
+            eventDateStart.addEventListener('input', checkForConflicts);
+        }
+        
+        if (eventDateEnd) {
+            eventDateEnd.addEventListener('change', checkForConflicts);
+            eventDateEnd.addEventListener('input', checkForConflicts);
+        }
+        
+        if (d1Field) d1Field.addEventListener('change', checkForConflicts);
+        if (d2Field) d2Field.addEventListener('change', checkForConflicts);
+        
+        const employeeCheckboxList = document.getElementById('employeeCheckboxList');
+        if (employeeCheckboxList) {
+            employeeCheckboxList.addEventListener('change', function(e) {
+                if (isViewOnlyMode) return;
+                
+                if (e.target.type === 'checkbox') {
+                    let idx = Number(e.target.id.replace('emp_', ''));
+                    if (e.target.checked) {
+                        if (!currentSelectedEmployees.includes(idx)) {
+                            currentSelectedEmployees.push(idx);
+                        }
+                    } else {
+                        currentSelectedEmployees = currentSelectedEmployees.filter(i => i !== idx);
+                    }
+                    updateSelectedEmployeesDisplay();
+                    checkForConflicts();
+                }
+            });
+        }
+        
+        const employeeSearchInput = document.getElementById('employeeSearchInput');
+        if (employeeSearchInput) {
+            employeeSearchInput.addEventListener('input', (e) => {
+                renderEmployeeCheckboxes(e.target.value, isViewOnlyMode);
+            });
+        }
+        
+        // Обработчик клика на таблицу
+        const scheduleBody = document.getElementById('scheduleBody');
+        if (scheduleBody) {
+            scheduleBody.addEventListener('click', (e) => {
+                e.stopPropagation();
+                
+                const empCell = e.target.closest('.employee-col');
+                if (empCell && empCell.dataset.empidx !== undefined) {
+                    const empIdx = parseInt(empCell.dataset.empidx);
+                    openEmployeeEventsModal(empIdx);
+                    return;
+                }
+                
+                let badge = e.target.closest('.event-badge');
+                if (badge) { 
+                    let cell = badge.closest('td'); 
+                    if (cell?.dataset.eventid) {
+                        openEventModalForEvent(parseInt(cell.dataset.eventid)); 
+                    }
+                    return; 
+                }
+                
+                let cell = e.target.closest('td');
+                if (cell && cell.dataset.emp && cell.dataset.day) {
+                    e.preventDefault();
+                    
+                    if (!currentLoggedInEmployee) {
+                        return;
+                    }
+                    
+                    resetEventEditorState();
+                    
+                    let empIdx = parseInt(cell.dataset.emp);
+                    currentSelectedEmployees = [empIdx];
+                    let date = getDateFromOffset(parseInt(cell.dataset.day));
+                    
+                    const startInput = document.getElementById('eventDateStart');
+                    const endInput = document.getElementById('eventDateEnd');
+                    if (startInput) startInput.value = date.toISOString().slice(0,10);
+                    if (endInput) endInput.value = date.toISOString().slice(0,10);
+                    
+                    const d1Field = document.getElementById('d1Field');
+                    const d2Field = document.getElementById('d2Field');
+                    if (d1Field) d1Field.value = '0';
+                    if (d2Field) d2Field.value = '0';
+                    
+                    const statusSelect = document.getElementById('eventStatus');
+                    if (statusSelect) {
+                        let statusOptions = statuses.map(s => `<option value="${s.name}">${s.name}</option>`).join('');
+                        statusSelect.innerHTML = statusOptions;
+                    }
+                    
+                    const commentInput = document.getElementById('eventComment');
+                    if (commentInput) commentInput.value = '';
+                    
+                    const factCheckbox = document.getElementById('eventFact');
+                    if (factCheckbox) factCheckbox.checked = false;
+                    
+                    const title = document.getElementById('eventModalTitle');
+                    if (title) title.textContent = '📌 Редактор события';
+                    
+                    isViewOnlyMode = false;
+                    
+                    const saveBtn = document.getElementById('saveEventBtn');
+                    const deleteBtn = document.getElementById('deleteEventBtn');
+                    const closeViewBtn = document.getElementById('closeViewEventBtn');
+                    const infoMsg = document.getElementById('eventInfoMessage');
+                    
+                    if (saveBtn) saveBtn.style.display = 'block';
+                    if (deleteBtn) deleteBtn.style.display = 'none';
+                    if (closeViewBtn) closeViewBtn.style.display = 'none';
+                    if (infoMsg) infoMsg.style.display = 'none';
+                    
+                    const inputs = ['eventDateStart', 'eventDateEnd', 'd1Field', 'd2Field', 'eventStatus', 'eventComment', 'employeeSearchInput'];
+                    inputs.forEach(id => {
+                        const el = document.getElementById(id);
+                        if (el) el.disabled = false;
+                    });
+                    
+                    if (factCheckbox) factCheckbox.disabled = false;
+                    
+                    const modalContent = document.getElementById('eventModalContent');
+                    if (modalContent) modalContent.classList.remove('view-only-modal');
+                    
+                    renderEmployeeCheckboxes('', false);
+                    updateSelectedEmployeesDisplay(false);
+                    
+                    const modal = document.getElementById('eventModal');
+                    if (modal) modal.classList.add('active');
+                    
+                    setTimeout(checkForConflicts, 300);
+                }
+            });
+        }
+        
+        // Кнопка сохранения события
+        const saveEventBtn = document.getElementById('saveEventBtn');
+        if (saveEventBtn) {
+            saveEventBtn.addEventListener('click', async ()=>{
+                if (hasConflicts) { 
+                    alert("Есть пересечения. Событие не может быть сохранено."); 
+                    return; 
+                }
+                if (currentSelectedEmployees.length === 0) { 
+                    alert("Выберите хотя бы одного сотрудника"); 
+                    return; 
+                }
+                
+                let startStr = document.getElementById('eventDateStart')?.value;
+                let endStr = document.getElementById('eventDateEnd')?.value;
+                
+                if (!startStr || !endStr) { 
+                    alert("Выберите даты начала и окончания"); 
+                    return; 
+                }
+                
+                let startParts = startStr.split('-').map(Number);
+                let endParts = endStr.split('-').map(Number);
+                
+                let startDate = new Date(startParts[0], startParts[1]-1, startParts[2], 12, 0, 0);
+                let endDate = new Date(endParts[0], endParts[1]-1, endParts[2], 12, 0, 0);
+                
+                let startOff = getOffsetFromDate(startDate);
+                let endOff = getOffsetFromDate(endDate);
+                
+                if (startOff > endOff) { 
+                    alert("Дата начала не может быть позже даты окончания"); 
+                    return; 
+                }
+                
+                let status = document.getElementById('eventStatus')?.value;
+                let comment = document.getElementById('eventComment')?.value.trim() || '';
+                let fact = document.getElementById('eventFact')?.checked || false;
+                let d1 = parseInt(document.getElementById('d1Field')?.value) || 0;
+                let d2 = parseInt(document.getElementById('d2Field')?.value) || 0;
+                
+                if (startOff + d1 > endOff - d2) {
+                    alert("Сдвиги слишком большие (основной блок пуст)");
+                    return;
+                }
+                
+                if (currentEditEventId !== null) { 
+                    updateEvent(currentEditEventId, currentSelectedEmployees, startOff, endOff, status, comment, fact, d1, d2); 
+                    showNotification('Событие успешно обновлено');
+                } else { 
+                    createEvent(currentSelectedEmployees, startOff, endOff, status, comment, fact, d1, d2); 
+                    showNotification('Событие успешно создано');
+                }
+                
+                renderSchedule(); 
+                
+                const modal = document.getElementById('eventModal');
+                if (modal) modal.classList.remove('active'); 
+                
+                resetEventEditorState();
+            });
+        }
+        
+        // Кнопка удаления события
+        const deleteEventBtn = document.getElementById('deleteEventBtn');
+        if (deleteEventBtn) {
+            deleteEventBtn.addEventListener('click', async ()=>{
+                if (currentEditEventId !== null && confirm("Удалить событие?")) { 
+                    deleteEvent(currentEditEventId); 
+                    renderSchedule(); 
+                    
+                    const modal = document.getElementById('eventModal');
+                    if (modal) modal.classList.remove('active'); 
+                    
+                    resetEventEditorState();
+                    showNotification('Событие удалено');
+                }
+            });
+        }
+        
+        // Кнопки добавления в настройках
+        const addEmployeeBtn = document.getElementById('addEmployeeBtn');
+        if (addEmployeeBtn) {
+            addEmployeeBtn.addEventListener('click', ()=>{
+                let n = document.getElementById('newEmployeeName')?.value.trim();
+                if (n) { 
+                    employeeList.push({
+                        name: n, 
+                        title: document.getElementById('newEmployeeTitle')?.value || 'инж', 
+                        group: document.getElementById('newEmployeeGroup')?.value || 'ПО', 
+                        isActive: document.getElementById('newEmployeeActive')?.checked || false
+                    }); 
+                    renderSchedule(); 
+                    renderSettingsEmployees(); 
+                    renderLoginEmployeeList('');
+                    saveConfig();
+                    
+                    const nameInput = document.getElementById('newEmployeeName');
+                    if (nameInput) nameInput.value = '';
+                    
+                    showNotification('Сотрудник добавлен');
+                }
+            });
+        }
+        
+        const addStatusBtn = document.getElementById('addStatusBtn');
+        if (addStatusBtn) {
+            addStatusBtn.addEventListener('click', ()=>{
+                let n = document.getElementById('newStatusName')?.value.trim(); 
+                let c = document.getElementById('newStatusColor')?.value;
+                if (n && !statuses.find(s => s.name === n)) { 
+                    statuses.push({name: n, color: c || '#a5d6ff'}); 
+                    renderSchedule(); 
+                    renderSettingsStatuses(); 
+                    saveConfig();
+                    
+                    const nameInput = document.getElementById('newStatusName');
+                    if (nameInput) nameInput.value = '';
+                    
+                    showNotification('Статус добавлен');
+                }
+            });
+        }
+        
+        const addHolidayBtn = document.getElementById('addHolidayBtn');
+        if (addHolidayBtn) {
+            addHolidayBtn.addEventListener('click', ()=>{
+                let d = document.getElementById('newHolidayDate')?.value; 
+                if (!d) return;
+                let [y, m, day] = d.split('-').map(Number);
+                if (y !== currentYear) { 
+                    alert("Праздник только для текущего года " + currentYear); 
+                    return; 
+                }
+                let off = getDayOffset(m-1, day, y);
+                if (!holidays.find(h => h.dateOffset === off)) { 
+                    holidays.push({ dateOffset: off, name: "Праздник" }); 
+                    renderSchedule(); 
+                    renderHolidays(); 
+                    saveConfig();
+                    showNotification('Праздник добавлен');
+                }
+            });
+        }
+        
+        const addShortdayBtn = document.getElementById('addShortdayBtn');
+        if (addShortdayBtn) {
+            addShortdayBtn.addEventListener('click', ()=>{
+                let d = document.getElementById('newShortdayDate')?.value; 
+                if (!d) return;
+                let [y, m, day] = d.split('-').map(Number);
+                if (y !== currentYear) { 
+                    alert("Сокращённый день только для " + currentYear); 
+                    return; 
+                }
+                let off = getDayOffset(m-1, day, y);
+                if (!shortDays.includes(off)) { 
+                    shortDays.push(off); 
+                    renderSchedule(); 
+                    renderShortdays(); 
+                    saveConfig();
+                    showNotification('Сокращённый день добавлен');
+                }
+            });
+        }
+        
+        // Таймер
+        setInterval(() => {
+            let now = new Date();
+            let h = ('0' + now.getHours()).slice(-2);
+            let m = ('0' + now.getMinutes()).slice(-2);
+            let d = ('0' + now.getDate()).slice(-2);
+            let mo = ('0' + (now.getMonth()+1)).slice(-2);
+            
+            const dateTimeEl = document.getElementById('currentDateTime');
+            if (dateTimeEl) {
+                dateTimeEl.innerHTML = `${d}.${mo}.${now.getFullYear()} _ ${h}:${m}`;
+            }
+        }, 1000);
+        
+        // Загружаем данные
+        showLoading();
+        Promise.all([loadConfig(), loadEvents()]).then(() => {
+            renderSchedule();
+            updateUserDisplay();
+            renderLoginEmployeeList('');
+            hideLoading();
+            console.log('✅ Загрузка данных завершена');
+        }).catch(error => {
+            console.error('❌ Ошибка загрузки данных:', error);
+            hideLoading();
+        });
+    }
+
+    // Запускаем инициализацию
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', init);
+    } else {
+        init();
+    }
+})();
+</script>
+
+<!-- ========== АВАРИЙНЫЙ ОБРАБОТЧИК ========== -->
+<script>
+document.addEventListener('click', function(e) {
+    if (e.target && e.target.id === 'settingsBtn') {
+        console.log('🚨 Аварийный обработчик: клик по settingsBtn');
+        e.preventDefault();
+        e.stopPropagation();
+        
+        const modal = document.getElementById('settingsModal');
+        if (modal) {
+            modal.classList.add('active');
+            console.log('✅ Настройки открыты через аварийный обработчик');
+        }
+    }
+}, true);
+</script>
+</body>
+</html>
