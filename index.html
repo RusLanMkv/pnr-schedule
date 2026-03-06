@@ -119,25 +119,9 @@
             background: rgb(235, 233, 248);
             font-size: 0.75rem;
         }
+        /* Legend panel скрыт */
         .legend-panel {
-            background: #c3c6cc;
-            border-radius: 30px;
-            padding: 3px 9px;
-            display: flex;
-            flex-wrap: wrap;
-            gap: 6px 12px;
-            font-size: 0.7rem;
-            align-items: center;
-        }
-        .legend-item {
-            display: flex;
-            align-items: center;
-            gap: 2px;
-        }
-        .color-dot {
-            width: 12px;
-            height: 12px;
-            border-radius: 2px;
+            display: none !important;
         }
         .sticky-scroll-container {
             position: sticky;
@@ -774,28 +758,61 @@
 
         .github-token-status {
             margin: 10px 0;
-            padding: 10px;
+            padding: 15px;
             background: #f0f4fa;
             border-radius: 8px;
+            border: 2px solid #1e3a6b;
             display: flex;
             align-items: center;
             justify-content: space-between;
         }
         .token-status-text {
-            font-size: 0.9rem;
+            font-size: 1rem;
+            font-weight: 500;
             color: #1e3a6b;
         }
         .token-status-text.success {
             color: #4CAF50;
         }
+        .token-status-text.error {
+            color: #f44336;
+        }
+        .token-input-group {
+            display: flex;
+            gap: 10px;
+            align-items: center;
+            flex: 1;
+            margin-left: 15px;
+        }
+        .token-input-group input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #1e3a6b;
+            border-radius: 4px;
+            font-size: 0.9rem;
+        }
+        .save-token-btn {
+            background: #1e3a6b;
+            color: white;
+            border: none;
+            padding: 8px 20px;
+            border-radius: 20px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            white-space: nowrap;
+        }
+        .save-token-btn:hover {
+            background: #2a4a8a;
+        }
         .reset-token-btn {
             background: #ff4444;
             color: white;
             border: none;
-            padding: 5px 15px;
-            border-radius: 15px;
+            padding: 8px 15px;
+            border-radius: 20px;
             cursor: pointer;
-            font-size: 0.8rem;
+            font-size: 0.9rem;
+            white-space: nowrap;
         }
         .reset-token-btn:hover {
             background: #cc0000;
@@ -874,7 +891,7 @@
             <button class="small" id="applyMonthRange">OK</button>
         </div>
         <div class="current-date-time" id="currentDateTime"></div>
-        <div class="legend-panel" id="legendPanel"></div>
+        <!-- Легенда скрыта через CSS -->
     </div>
 
     <div class="sticky-scroll-container" id="stickyScroll">
@@ -891,13 +908,7 @@
     </div>
 
     <div class="footer-info">
-        <div class="legend-panel">
-            <div class="legend-item"><span class="color-dot" style="background:#00ff1e;"></span> Командировка</div>
-            <div class="legend-item"><span class="color-dot" style="background:#060240;"></span> Отпуск</div>
-            <div class="legend-item"><span class="color-dot" style="background:#302ea8;"></span> Больничный</div>
-            <div class="legend-item"><span class="color-dot" style="background:#5ee6f7;"></span> Обучение</div>
-            <div class="legend-item"><span class="color-dot" style="background:#8d53f9;"></span> Офис</div>
-        </div>
+        <!-- Легенда скрыта -->
     </div>
 </div>
 
@@ -989,11 +1000,15 @@
         <div class="settings-grid">
             <div class="github-token-status" id="tokenStatusContainer">
                 <span class="token-status-text" id="tokenStatus">⚙️ GitHub Token не настроен</span>
-                <button class="reset-token-btn" id="resetTokenBtn" style="display: none;">Сбросить токен</button>
+                <div class="token-input-group" id="tokenInputGroup">
+                    <input type="password" id="tokenInput" placeholder="Введите GitHub Token">
+                    <button class="save-token-btn" id="saveTokenBtn">Сохранить</button>
+                    <button class="reset-token-btn" id="resetTokenBtn" style="display: none;">Сбросить</button>
+                </div>
             </div>
             <div style="border-top:2px solid #3104af; padding-top:6px;">
                 <h3>👥 Сотрудники</h3>
-                <div id="employeesGroupContainer" style="max-height:300px; overflow-y:auto;"></div>
+                <div id="employeesGroupContainer" style="max-height:300px; overflow-y:auto; border: 1px solid #ccc; padding: 10px; margin: 10px 0;"></div>
                 <div style="display:flex; gap:5px; margin:10px 0; flex-wrap:wrap;">
                     <input type="text" id="newEmployeeName" placeholder="ФИО" style="flex:2; min-width:150px;">
                     <select id="newEmployeeGroup" style="width:auto; min-width:70px;">
@@ -1142,21 +1157,39 @@
     
     function updateTokenStatus() {
         const tokenStatus = document.getElementById('tokenStatus');
+        const tokenInputGroup = document.getElementById('tokenInputGroup');
         const resetBtn = document.getElementById('resetTokenBtn');
+        const saveBtn = document.getElementById('saveTokenBtn');
+        const tokenInput = document.getElementById('tokenInput');
         
         if (githubToken) {
             tokenStatus.innerHTML = '✅ GitHub Token настроен (сохранен в браузере)';
             tokenStatus.className = 'token-status-text success';
+            tokenInputGroup.style.display = 'none';
             resetBtn.style.display = 'inline-block';
         } else {
-            tokenStatus.innerHTML = '⚙️ GitHub Token не настроен (будет предложен при первом сохранении)';
-            tokenStatus.className = 'token-status-text';
+            tokenStatus.innerHTML = '⚙️ GitHub Token не настроен';
+            tokenStatus.className = 'token-status-text error';
+            tokenInputGroup.style.display = 'flex';
             resetBtn.style.display = 'none';
+            if (tokenInput) tokenInput.value = '';
         }
     }
 
+    document.getElementById('saveTokenBtn')?.addEventListener('click', function() {
+        const tokenInput = document.getElementById('tokenInput');
+        if (tokenInput && tokenInput.value.trim()) {
+            githubToken = tokenInput.value.trim();
+            localStorage.setItem('github_token', githubToken);
+            updateTokenStatus();
+            showNotification('✅ GitHub Token сохранен');
+        } else {
+            showNotification('❌ Введите токен', 'error');
+        }
+    });
+
     document.getElementById('resetTokenBtn')?.addEventListener('click', function() {
-        if (confirm('Сбросить GitHub токен? Это потребует повторного ввода при следующем сохранении.')) {
+        if (confirm('Сбросить GitHub токен?')) {
             githubToken = '';
             localStorage.removeItem('github_token');
             updateTokenStatus();
@@ -1200,15 +1233,8 @@
 
     async function saveFileToGitHub(path, content, message) {
         if (!githubToken) {
-            const token = prompt('Введите GitHub Token для автоматического сохранения (нужно ввести один раз):');
-            if (token) {
-                githubToken = token;
-                localStorage.setItem('github_token', token);
-                updateTokenStatus();
-            } else {
-                showNotification('Сохранение на GitHub отменено', 'info');
-                return false;
-            }
+            showNotification('❌ Сначала настройте GitHub Token в окне настроек', 'error');
+            return false;
         }
 
         showLoading();
@@ -1632,13 +1658,6 @@
             }
         });
         tbody.innerHTML = html;
-        
-        const legendPanel = document.getElementById('legendPanel');
-        if (legendPanel) {
-            legendPanel.innerHTML = statuses.map(s =>
-                `<div class="legend-item"><span class="color-dot" style="background:${s.color};"></span> ${s.name}</div>`
-            ).join('');
-        }
     }
 
     // ========== ФУНКЦИИ ДЛЯ НАСТРОЕК ==========
@@ -1801,6 +1820,7 @@
     function openSettingsModal() {
         console.log('🔧 Открываем настройки');
         console.log('employeeList длина:', employeeList?.length);
+        console.log('employeeList данные:', employeeList);
         
         renderSettingsEmployees();
         renderSettingsStatuses();
