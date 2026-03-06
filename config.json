@@ -7,12 +7,7 @@
       "isActive": true
     }
   ],
-  "statuses": [
-    {
-      "name": "Командировка",
-      "color": "#03fc13"
-    }
-  ],
+  "statuses": [],
   "holidays": [],
   "shortDays": [],
   "employeePasswords": {},
