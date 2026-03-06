@@ -1,6 +1,18 @@
 {
-  "employeeList": [],
-  "statuses": [],
+  "employeeList": [
+    {
+      "name": "Мешков Руслан",
+      "title": "Инж.эл",
+      "group": "ПНР",
+      "isActive": true
+    }
+  ],
+  "statuses": [
+    {
+      "name": "Командировка",
+      "color": "#03fc13"
+    }
+  ],
   "holidays": [],
   "shortDays": [],
   "employeePasswords": {},
