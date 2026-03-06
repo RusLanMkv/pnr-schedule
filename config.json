@@ -1,5 +1,12 @@
 {
-  "employeeList": [],
+  "employeeList": [
+    {
+      "name": "Мешков Руслан",
+      "title": "Инж.эл",
+      "group": "ПНР",
+      "isActive": true
+    }
+  ],
   "statuses": [],
   "holidays": [],
   "shortDays": [],
